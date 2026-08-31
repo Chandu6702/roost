@@ -2,11 +2,11 @@
 
 One line per mistake. Link to the note where it's now correct. Re-quiz these in every weekly review (Monday evening block) and every monthly checkpoint. High-recurrence mistakes get promoted into `interview-qa/` cards.
 
-Format: `- YYYY-MM-DD · Wk NN D N · <topic> · <what I got wrong> · [note link]`
-
 ## Week 10
 
-<!-- entries added during Week 10 -->
+- IoC ≠ simply converting tight coupling to loose coupling
+  Loose coupling is a benefit; IoC is about transferring control of object creation/management.
+- DI = Dependency Injection, not Data Injection
 
 ## Week 11
 

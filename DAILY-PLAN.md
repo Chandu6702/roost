@@ -28,7 +28,7 @@ Work the day yourself: read resource → code the deliverable → answer the que
 
 **Goal by end of week:** Roost skeleton runs, one real endpoint (`POST /workspaces`) is wired through service + config + validation; app starts on both `dev` and `prod` profiles with different config.
 
-### ☐ Day 1 — IoC & Dependency Injection (plain Java, inside the Spring project)
+### ✅ Day 1 — IoC & Dependency Injection (plain Java, inside the Spring project)
 
 **Resource:** Amigoscode "Intro to Spring Boot & DI" (first ~20 min) OR Baeldung "Intro to Inversion of Control and Dependency Injection with Spring".
 **Code:** in `src/main/java/com/chandu/roost/probe/`, create two plain Java classes (no Spring annotations yet): `HttpProbeClient` (with one method `probe(String url)` returning a stub result) and `ProbeRunner` that receives `HttpProbeClient` via **constructor**. Add a plain unit test in `src/test/java/.../probe/ProbeRunnerTest.java` that swaps in a `MockHttpProbeClient` — proves loose coupling works. **No Spring annotations today.** On Day 3 you'll add `@Service` and see the container take over.
