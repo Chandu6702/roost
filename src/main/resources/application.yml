@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: roost
+
+Server:
+  port: 8080

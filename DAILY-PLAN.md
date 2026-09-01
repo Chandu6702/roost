@@ -35,7 +35,7 @@ Work the day yourself: read resource → code the deliverable → answer the que
 **Self-check:** 1) What is IoC in one sentence? 2) DI is a *specific form* of IoC — of what? 3) Constructor vs field injection — which is better and why? 4) Why does DI make code testable? 5) What is the "service locator" anti-pattern and why is DI preferred?
 **Answers:** 1) The framework calls your code, not the other way — you don't `new` collaborators, they're given to you. 2) Of *dependency management* — the container decides who gets what. 3) Constructor: dependencies are final, class is immutable, easy to test (pass mocks directly), and compiler enforces required deps. Field injection hides deps and needs reflection to test. 4) Because you can pass a fake/mock in the constructor without touching the class under test. 5) Service locator: class asks a global registry for its deps (`Locator.get(HttpProbeClient.class)`). Hides deps, hard to test, ties every class to the locator. DI inverts this — deps are declared, container provides.
 
-### ☐ Day 2 — First Roost endpoint (health) + application.properties
+### ✅ Day 2 — First Roost endpoint (health) + application.properties
 
 **Resource:** Spring guide "Building a RESTful Web Service" (skim, 15 min).
 **Code:** create `com.chandu.roost.health.HealthController` with `@RestController`, one `GET /health` returning `Map.of("status", "up", "app", "roost")`. Run `./mvnw spring-boot:run`, curl `http://localhost:8080/health`. Rename `application.properties` → `application.yml`, add `spring.application.name: roost` and `server.port: 8080`.
