@@ -2,7 +2,7 @@
 
 > **Use alone:** each day = one task. Study the resource (~20 min cap), **build the day's Roost feature** (~25 min), self-check against the **Answers** below the questions, write the 6-section note, tick the checkbox, commit, push. Wrong/shaky answer → `mistakes.md`.
 
-> **Primary resources:** Amigoscode Spring Boot (YouTube) · Chad Darby (Udemy) · Baeldung Spring articles · Spring docs · *Spring Start Here* (Spilcă). If a link 404s, search the title.
+> **Primary resources:** Amigoscode Spring Boot (YouTube) · Chad Darby (Udemy) · Baeldung Spring articles · Spring docs · _Spring Start Here_ (Spilcă). If a link 404s, search the title.
 
 > **Method:** Every learning example ships as a real Roost feature. No `Book`/`Author` demos. The Spring Boot project already exists at `roost/` — code lands there from Day 1.
 
@@ -32,8 +32,8 @@ Work the day yourself: read resource → code the deliverable → answer the que
 
 **Resource:** Amigoscode "Intro to Spring Boot & DI" (first ~20 min) OR Baeldung "Intro to Inversion of Control and Dependency Injection with Spring".
 **Code:** in `src/main/java/com/chandu/roost/probe/`, create two plain Java classes (no Spring annotations yet): `HttpProbeClient` (with one method `probe(String url)` returning a stub result) and `ProbeRunner` that receives `HttpProbeClient` via **constructor**. Add a plain unit test in `src/test/java/.../probe/ProbeRunnerTest.java` that swaps in a `MockHttpProbeClient` — proves loose coupling works. **No Spring annotations today.** On Day 3 you'll add `@Service` and see the container take over.
-**Self-check:** 1) What is IoC in one sentence? 2) DI is a *specific form* of IoC — of what? 3) Constructor vs field injection — which is better and why? 4) Why does DI make code testable? 5) What is the "service locator" anti-pattern and why is DI preferred?
-**Answers:** 1) The framework calls your code, not the other way — you don't `new` collaborators, they're given to you. 2) Of *dependency management* — the container decides who gets what. 3) Constructor: dependencies are final, class is immutable, easy to test (pass mocks directly), and compiler enforces required deps. Field injection hides deps and needs reflection to test. 4) Because you can pass a fake/mock in the constructor without touching the class under test. 5) Service locator: class asks a global registry for its deps (`Locator.get(HttpProbeClient.class)`). Hides deps, hard to test, ties every class to the locator. DI inverts this — deps are declared, container provides.
+**Self-check:** 1) What is IoC in one sentence? 2) DI is a _specific form_ of IoC — of what? 3) Constructor vs field injection — which is better and why? 4) Why does DI make code testable? 5) What is the "service locator" anti-pattern and why is DI preferred?
+**Answers:** 1) The framework calls your code, not the other way — you don't `new` collaborators, they're given to you. 2) Of _dependency management_ — the container decides who gets what. 3) Constructor: dependencies are final, class is immutable, easy to test (pass mocks directly), and compiler enforces required deps. Field injection hides deps and needs reflection to test. 4) Because you can pass a fake/mock in the constructor without touching the class under test. 5) Service locator: class asks a global registry for its deps (`Locator.get(HttpProbeClient.class)`). Hides deps, hard to test, ties every class to the locator. DI inverts this — deps are declared, container provides.
 
 ### ✅ Day 2 — First Roost endpoint (health) + application.properties
 
@@ -42,7 +42,7 @@ Work the day yourself: read resource → code the deliverable → answer the que
 **Self-check:** 1) What does `@SpringBootApplication` combine? 2) What server runs by default in SB4 and where's it defined? 3) Difference between `@Controller` and `@RestController`? 4) What is auto-configuration? 5) Why does the app start even though we didn't wire anything ourselves?
 **Answers:** 1) `@SpringBootConfiguration` + `@EnableAutoConfiguration` + `@ComponentScan` on the current package downwards. 2) Embedded Tomcat; brought in transitively by `spring-boot-starter-webmvc`. 3) `@RestController` = `@Controller` + `@ResponseBody` — every handler serializes its return value to JSON directly. `@Controller` alone expects a view name. 4) SB scans the classpath, sees `spring-webmvc` present, and configures Tomcat + `DispatcherServlet` + JSON message converters without you writing a bean. 5) Because starters bring transitive deps, and auto-config classes (`WebMvcAutoConfiguration`, `EmbeddedTomcatAutoConfiguration`, etc.) fire on classpath conditions.
 
-### ☐ Day 3 — Beans, `@Service`, component scanning
+### ✅ Day 3 — Beans, `@Service`, component scanning
 
 **Resource:** Baeldung "Spring Bean Annotations" + "Component Scan".
 **Code:** promote yesterday's plain `HttpProbeClient` and `ProbeRunner` to Spring beans — add `@Component` (or `@Service`) to both. Create `com.chandu.roost.workspace.WorkspaceService` (`@Service`) with `createWorkspace(String name)` returning a stub `Workspace` record. Create `WorkspaceController` (`@RestController`, `POST /workspaces` accepting a `CreateWorkspaceRequest` record, returning 201). Wire via constructor. Confirm `curl -X POST -H 'Content-Type: application/json' -d '{"name":"Acme"}' http://localhost:8080/workspaces` returns the stub.
@@ -53,12 +53,14 @@ Work the day yourself: read resource → code the deliverable → answer the que
 
 **Resource:** Baeldung "Guide to `@ConfigurationProperties`" + "Spring Profiles".
 **Code:** in `application.yml` add:
+
 ```yaml
 roost:
   probe:
     default-interval-seconds: 60
     default-timeout-millis: 5000
 ```
+
 Create `com.chandu.roost.config.ProbeProperties` as a Java record annotated `@ConfigurationProperties(prefix = "roost.probe")`. Register it via `@EnableConfigurationProperties(ProbeProperties.class)` on your `RoostApplication`. Inject into `ProbeRunner` and log the values at `@PostConstruct`. Add `application-dev.yml` and `application-prod.yml` with different `default-interval-seconds` values (dev = 30, prod = 300). Run with `--spring.profiles.active=dev` then `prod`, confirm the log differs.
 **Self-check:** 1) `@Value("${x}")` vs `@ConfigurationProperties` — when do you use each? 2) What is "relaxed binding"? 3) How do profile-specific yml files override the base? 4) How is a Kubernetes-style env var (`ROOST_PROBE_DEFAULT_INTERVAL_SECONDS=10`) mapped? 5) Where do profile-specific properties come from in prod (yml file vs env var vs config server)?
 **Answers:** 1) `@Value` for one or two individual props; `@ConfigurationProperties` for a group with validation, IDE autocomplete, and record immutability. 2) Property key `roost.probe.default-interval-seconds` matches Java field `defaultIntervalSeconds`, kebab/snake/camel/underscore all bind. 3) `application-<profile>.yml` is loaded on top of `application.yml`; keys in the profile file override. If `roost.probe.default-interval-seconds` exists in both, the profile wins. 4) Env vars use `SCREAMING_SNAKE_CASE` and map by relaxed binding to `roost.probe.default-interval-seconds`. Underscores between segments become dots. 5) In prod: env vars (via k8s secrets/configmaps) or an external config source (Spring Cloud Config, Vault). Never commit prod secrets; `application-prod.yml` should hold defaults, not secrets.
@@ -67,6 +69,7 @@ Create `com.chandu.roost.config.ProbeProperties` as a Java record annotated `@Co
 
 **Resource:** Baeldung "Flyway Migrations with Spring Boot" (skim, 10 min).
 **Code:** stand up Postgres via docker-compose (write `docker-compose.yml` at repo root — `postgres:17`, exposed on 5432, POSTGRES_USER/PASSWORD/DB set to `roost`). Update `application.yml`:
+
 ```yaml
 spring:
   datasource:
@@ -76,7 +79,9 @@ spring:
   flyway:
     enabled: true
 ```
+
 Create `src/main/resources/db/migration/V1__workspaces.sql`:
+
 ```sql
 CREATE TABLE workspaces (
     id BIGSERIAL PRIMARY KEY,
@@ -85,6 +90,7 @@ CREATE TABLE workspaces (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ```
+
 Boot the app, confirm Flyway ran (table exists, `flyway_schema_history` populated). **No JPA entities yet — that lands W12.** Write `notes/10-spring-core/spring-core.md` (Feynman close: explain IoC in 60 sec). Commit + push.
 **Self-check:** Mixed Qs across IoC, beans, config, profiles. + What does Flyway do that `ddl-auto=update` doesn't? Why should we prefer Flyway from Day 1?
 **Answers:** Flyway = versioned, ordered, immutable schema history. Every environment applies the same migrations in the same order; you can prove what schema prod is on; migrations code-review just like app code. `ddl-auto=update` guesses schema changes at startup from JPA entities — non-reproducible, can't handle destructive changes (drops, renames), can't add indexes or seed data, no history table.
@@ -112,7 +118,7 @@ Boot the app, confirm Flyway ran (table exists, `flyway_schema_history` populate
 **Resource:** Baeldung "Java Records" + "Jackson with Spring".
 **Code:** split `Monitor` (domain entity — has all internal state) from `MonitorRequest` (client input) and `MonitorResponse` (client output) — both as Java records. `MonitorService.create(MonitorRequest)` maps input → entity; `MonitorController` maps entity → response. Use `@JsonProperty("check_interval_seconds")` on one field to see snake_case in JSON while keeping camelCase in Java.
 **Self-check:** 1) Why separate DTOs from entities — what breaks if you use the entity everywhere? 2) Why records for DTOs — what do they give you? 3) `@JsonIgnore` vs `@JsonProperty(access = READ_ONLY)` — difference? 4) What happens if the client sends an unknown JSON field? How do you fail loud vs silent? 5) When Jackson deserializes into a record, how does it find the constructor?
-**Answers:** 1) Entity leaks internal fields (audit timestamps, tenant ID, versioning); ties JSON schema to DB schema — any DB refactor breaks the API contract; adds circular JSON on relationships. DTOs isolate the contract. 2) Immutability, `equals`/`hashCode`/`toString` free, compact syntax, safer as request/response objects. 3) `@JsonIgnore` = field never serialized nor deserialized. `@JsonProperty(access = READ_ONLY)` = serialized (in responses) but *ignored* on deserialization (so a client can't set `id`). 4) Default: ignored silently. Fail loud: `spring.jackson.deserialization.fail-on-unknown-properties: true` in yml, or `@JsonIgnoreProperties(ignoreUnknown = false)` per class. 5) Jackson uses the canonical constructor of the record; annotate parameters or use `@JsonCreator` if names don't match JSON keys.
+**Answers:** 1) Entity leaks internal fields (audit timestamps, tenant ID, versioning); ties JSON schema to DB schema — any DB refactor breaks the API contract; adds circular JSON on relationships. DTOs isolate the contract. 2) Immutability, `equals`/`hashCode`/`toString` free, compact syntax, safer as request/response objects. 3) `@JsonIgnore` = field never serialized nor deserialized. `@JsonProperty(access = READ_ONLY)` = serialized (in responses) but _ignored_ on deserialization (so a client can't set `id`). 4) Default: ignored silently. Fail loud: `spring.jackson.deserialization.fail-on-unknown-properties: true` in yml, or `@JsonIgnoreProperties(ignoreUnknown = false)` per class. 5) Jackson uses the canonical constructor of the record; annotate parameters or use `@JsonCreator` if names don't match JSON keys.
 
 ### ☐ Day 3 — Bean Validation on `MonitorRequest`
 
@@ -178,10 +184,12 @@ Boot the app, confirm Flyway ran (table exists, `flyway_schema_history` populate
 
 **Resource:** SQLBolt (SELECT/JOIN sections, skim) + Use The Index Luke chapters 1–2.
 **Code:** on the running Postgres — `psql -U roost` or DBeaver — write raw SQL for "the 10 latest probe results per monitor" (window function or lateral join). `EXPLAIN ANALYZE` your `MonitorRepository.findByWorkspaceId(...)` query. Add `V4__idx_monitors_workspace.sql`:
+
 ```sql
 CREATE INDEX idx_monitors_workspace_id ON monitors(workspace_id);
 CREATE INDEX idx_probe_results_monitor_probed_at ON probe_results(monitor_id, probed_at DESC);
 ```
+
 Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-data-layer/jpa-basics.md`.
 **Self-check:** Mixed + What's the composite index rule you just applied and why?
 **Answers:** Composite indexes: leftmost prefix matters. `(monitor_id, probed_at DESC)` supports "find latest results for a monitor" perfectly. Would NOT help "latest across all monitors" (needs `(probed_at, monitor_id)` or a different plan). Never index every column — write costs.
@@ -209,7 +217,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Resource:** Baeldung "Transactions With Spring and JPA".
 **Code:** `MonitorService.createMonitor(...)` — write to `monitors` AND write initial `probe_schedule` row (create `V6__probe_schedule.sql`) — inside one `@Transactional` method. Force a `RuntimeException` after the first insert; verify both rows rolled back.
 **Self-check:** 1) What triggers rollback by default? 2) How do you make checked exceptions roll back? 3) What is a "self-invocation" problem? 4) What does `@Transactional(readOnly = true)` actually do? 5) Where should `@Transactional` sit — controller, service, or repository?
-**Answers:** 1) Runtime exceptions and Errors. Checked exceptions do NOT roll back by default. 2) `@Transactional(rollbackFor = SomeCheckedException.class)`. 3) Calling one `@Transactional` method from another *inside the same bean* uses direct method call — bypasses the proxy — so the annotation on the inner method is ignored. Fix: move the inner call to a different bean, or use `TransactionTemplate`. 4) Signals to the tx manager it's read-only (for optimizations like skipping dirty-check on flush); doesn't prevent writes but Hibernate skips some housekeeping. 5) Service. Controller doesn't do work; repository is too fine-grained for multi-repo operations.
+**Answers:** 1) Runtime exceptions and Errors. Checked exceptions do NOT roll back by default. 2) `@Transactional(rollbackFor = SomeCheckedException.class)`. 3) Calling one `@Transactional` method from another _inside the same bean_ uses direct method call — bypasses the proxy — so the annotation on the inner method is ignored. Fix: move the inner call to a different bean, or use `TransactionTemplate`. 4) Signals to the tx manager it's read-only (for optimizations like skipping dirty-check on flush); doesn't prevent writes but Hibernate skips some housekeeping. 5) Service. Controller doesn't do work; repository is too fine-grained for multi-repo operations.
 
 ### ☐ Day 3 — Isolation levels & propagation
 
@@ -255,7 +263,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Resource:** Baeldung "Mockito Series" (basics).
 **Code:** `MonitorServiceTest` with `@ExtendWith(MockitoExtension.class)` — `@Mock MonitorRepository repo`; `@InjectMocks MonitorService service`. Test `getMonitor(1L)`: `when(repo.findById(1L)).thenReturn(Optional.of(mockMonitor))`; assert returned. Test `save`: `verify(repo).save(any(Monitor.class))`. One test where `repo.findById` returns empty — assert `MonitorNotFoundException` thrown.
 **Self-check:** 1) `@Mock` vs `@Spy`? 2) `when().thenReturn()` vs `doReturn().when()` — when different? 3) `verify(mock, times(2))` — what if you don't specify? 4) `ArgumentCaptor` — when do you use it? 5) Why NOT mock the class under test's own methods?
-**Answers:** 1) `@Mock` = fully fake, no real behavior. `@Spy` = wraps a real instance, stubs override only what you set. 2) `when.thenReturn` invokes the method to record — problematic with void methods or when you want to stub without executing. `doReturn.when` doesn't invoke — use for void, throwing methods, or spies. 3) Default is `times(1)`. 4) When you need to assert *what* was passed to a mocked method (the argument was built inside the service, you can't easily reconstruct it in the test). 5) Because you're then testing your test, not your code.
+**Answers:** 1) `@Mock` = fully fake, no real behavior. `@Spy` = wraps a real instance, stubs override only what you set. 2) `when.thenReturn` invokes the method to record — problematic with void methods or when you want to stub without executing. `doReturn.when` doesn't invoke — use for void, throwing methods, or spies. 3) Default is `times(1)`. 4) When you need to assert _what_ was passed to a mocked method (the argument was built inside the service, you can't easily reconstruct it in the test). 5) Because you're then testing your test, not your code.
 
 ### ☐ Day 3 — `@WebMvcTest` controller slice tests
 
@@ -318,17 +326,19 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 
 **Resource:** Baeldung "Multi-Tenancy with Hibernate" + Vlad Mihalcea "Hibernate `@Filter`".
 **Code:** add `workspace_id` column to `monitors`, `incidents`, `probe_results`. Extract `workspaceId` from the JWT into `TenantContext` (a `ThreadLocal<Long>`) via a filter/interceptor. On each entity, add:
+
 ```java
 @Filter(name = "tenantFilter", condition = "workspace_id = :tenantId")
 ```
+
 Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantContext`, `session.enableFilter("tenantFilter").setParameter("tenantId", tenantId)`. Write integration test — auth as user in workspace A, `GET /monitors` returns only A's monitors even if B's exist. **This test is the one you'll show recruiters.**
 **Self-check:** 1) `@Filter` (row-level) vs schema-per-tenant vs DB-per-tenant — pros/cons of each? 2) Why `ThreadLocal` for tenant context? What's the danger with virtual threads? 3) Can a bug in a repo query bypass `@Filter`? 4) How do admin/cross-tenant queries work with `@Filter` enabled? 5) How would you prove isolation in a security audit?
-**Answers:** 1) Row-level = one DB/schema, cheap, easy backups, but bug = data leak risk. Schema-per-tenant = strong isolation, still one DB, harder migrations (N schemas). DB-per-tenant = strongest isolation, high ops cost, limits tenant count. For a startup: row-level with `@Filter` is the standard. 2) Web requests are one-thread-per-request; ThreadLocal survives the request. With virtual threads: still one-per-request, so ThreadLocal is fine — but *never* pass ThreadLocal into async code without propagation (`TaskDecorator` in Spring). 3) Yes if the query uses `EntityManager.createNativeQuery` directly bypassing Hibernate's filter. Mitigation: forbid raw queries in review, or add a Postgres row-level security (RLS) backstop. 4) Disable the filter in a scoped `session.disableFilter(...)` — an admin-only service method that's audited. 5) The integration test from today + a Postgres RLS policy as backstop + code review rule against raw queries.
+**Answers:** 1) Row-level = one DB/schema, cheap, easy backups, but bug = data leak risk. Schema-per-tenant = strong isolation, still one DB, harder migrations (N schemas). DB-per-tenant = strongest isolation, high ops cost, limits tenant count. For a startup: row-level with `@Filter` is the standard. 2) Web requests are one-thread-per-request; ThreadLocal survives the request. With virtual threads: still one-per-request, so ThreadLocal is fine — but _never_ pass ThreadLocal into async code without propagation (`TaskDecorator` in Spring). 3) Yes if the query uses `EntityManager.createNativeQuery` directly bypassing Hibernate's filter. Mitigation: forbid raw queries in review, or add a Postgres row-level security (RLS) backstop. 4) Disable the filter in a scoped `session.disableFilter(...)` — an admin-only service method that's audited. 5) The integration test from today + a Postgres RLS policy as backstop + code review rule against raw queries.
 
 ### ☐ Monday W15 — deep-work + review
 
 **Morning:** wire full auth end-to-end — register, login (JWT returned), authenticated `GET /workspaces/mine` returning only the caller's workspaces via `@Filter`. Prove isolation with a manual 2-user curl test.
-**Evening:** `interview-qa/week-15-security-multitenant.md` — 8+ tenant-isolation Qs (this is *the* interview topic for MNC B2B roles).
+**Evening:** `interview-qa/week-15-security-multitenant.md` — 8+ tenant-isolation Qs (this is _the_ interview topic for MNC B2B roles).
 
 ---
 
@@ -367,11 +377,11 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Resource:** Baeldung "Spring `@Async`" + "Spring `@Scheduled`" + Spring blog "Virtual Threads in Spring Boot 3.2+".
 **Code:** `@EnableAsync` + `@EnableScheduling`. `ProbeScheduler` with `@Scheduled(fixedDelay = 10000)` that fetches due monitors and dispatches each probe. In `application.yml`: `spring.threads.virtual.enabled: true` — controllers now use virtual threads. Add `@Async` on the actual probe call — it uses the virtual-thread executor. Log `Thread.currentThread()` to prove.
 **Self-check:** 1) `fixedRate` vs `fixedDelay` vs `cron`? 2) Why virtual threads for probe workload? 3) `@Async` return type — `void` vs `CompletableFuture<T>`? 4) What's the default `@Async` executor? Why is that a pitfall? 5) Virtual threads: what problem does pinning cause?
-**Answers:** 1) `fixedRate` = time between *starts*; overlaps if slow. `fixedDelay` = time between end-of-N and start-of-N+1; never overlaps. `cron` = specific schedule ("0 0 * * * *"). 2) Probes are I/O-bound (HTTP calls) — virtual threads scale to millions cheaply. Traditional pool: 200 threads = 200 concurrent probes; virtual: 10k+ trivially. 3) `void` = fire-and-forget, exceptions lost. `CompletableFuture<T>` = can chain, catch exceptions, join. Prefer the latter unless truly fire-and-forget. 4) `SimpleAsyncTaskExecutor` — no pool, spawns unbounded threads per call. Configure a named `ThreadPoolTaskExecutor` bean and route via `@Async("customExecutor")`. Or, since Java 21, use `spring.task.execution.thread-name-prefix` + virtual-thread executor. 5) Native code, `synchronized` blocks, and `Thread.currentThread()`-holding operations pin the virtual thread to the carrier — blocks a platform thread — defeats the purpose. Use `ReentrantLock` instead of `synchronized`.
+**Answers:** 1) `fixedRate` = time between _starts_; overlaps if slow. `fixedDelay` = time between end-of-N and start-of-N+1; never overlaps. `cron` = specific schedule ("0 0 \* \* \* \*"). 2) Probes are I/O-bound (HTTP calls) — virtual threads scale to millions cheaply. Traditional pool: 200 threads = 200 concurrent probes; virtual: 10k+ trivially. 3) `void` = fire-and-forget, exceptions lost. `CompletableFuture<T>` = can chain, catch exceptions, join. Prefer the latter unless truly fire-and-forget. 4) `SimpleAsyncTaskExecutor` — no pool, spawns unbounded threads per call. Configure a named `ThreadPoolTaskExecutor` bean and route via `@Async("customExecutor")`. Or, since Java 21, use `spring.task.execution.thread-name-prefix` + virtual-thread executor. 5) Native code, `synchronized` blocks, and `Thread.currentThread()`-holding operations pin the virtual thread to the carrier — blocks a platform thread — defeats the purpose. Use `ReentrantLock` instead of `synchronized`.
 
 ### ☐ Monday W16 — deep-work + review
 
-**Morning:** implement the probe engine — `@Scheduled` fetches due monitors → dispatches to virtual-thread executor → each thread hits the URL, records a `ProbeResult`, triggers incident open/close if state changed. This is the *heart* of Roost.
+**Morning:** implement the probe engine — `@Scheduled` fetches due monitors → dispatches to virtual-thread executor → each thread hits the URL, records a `ProbeResult`, triggers incident open/close if state changed. This is the _heart_ of Roost.
 **Evening:** `interview-qa/week-16-internals.md` — virtual threads is a hot topic.
 
 ---
@@ -390,14 +400,14 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Resource:** Chris Richardson "Transactional Outbox Pattern" (microservices.io) + Baeldung "Transactional Outbox".
 **Code:** `V8__outbox.sql` (id, aggregate_type, aggregate_id, event_type, payload jsonb, created_at, published_at nullable). When `IncidentService.open` runs inside its transaction, it writes: (a) new `Incident`, (b) audit row, (c) outbox row `event_type = INCIDENT_OPENED`. Same tx. Later, a `@Scheduled` publisher polls unpublished outbox rows and sends them (to Kafka tomorrow).
 **Self-check:** 1) What problem does the outbox solve? 2) Why not just call the message broker from the service directly? 3) At-least-once vs exactly-once — which does outbox give you? 4) How do you handle poison messages? 5) Ordering guarantees?
-**Answers:** 1) Dual-write problem: writing to DB + broker in two separate calls; if the second fails, one side is out of sync. Outbox makes both writes atomic (same DB tx). 2) Because broker send is a network call *outside* the DB tx — if it fails after commit or succeeds after rollback, state diverges. 3) At-least-once — publisher might publish, crash before marking `published_at`, restart, republish. Consumers must be idempotent. 4) Retry with backoff; after N failures, mark row `poison` and alert. 5) Within one aggregate, DB insert order = publish order (single publisher, ordered scan). Across aggregates: no ordering unless partitioned by aggregate key on Kafka.
+**Answers:** 1) Dual-write problem: writing to DB + broker in two separate calls; if the second fails, one side is out of sync. Outbox makes both writes atomic (same DB tx). 2) Because broker send is a network call _outside_ the DB tx — if it fails after commit or succeeds after rollback, state diverges. 3) At-least-once — publisher might publish, crash before marking `published_at`, restart, republish. Consumers must be idempotent. 4) Retry with backoff; after N failures, mark row `poison` and alert. 5) Within one aggregate, DB insert order = publish order (single publisher, ordered scan). Across aggregates: no ordering unless partitioned by aggregate key on Kafka.
 
 ### ☐ Day 3 — Kafka: producer + consumer for `INCIDENT_OPENED`
 
 **Resource:** Baeldung "Kafka with Spring Boot".
 **Code:** add `spring-kafka` + docker-compose Kafka (bitnami/kafka). Configure producer + topic `roost.incidents`. Rewrite yesterday's outbox publisher to send to Kafka. Add a `NotificationConsumer` `@KafkaListener` on the topic that logs `"would send email to on-call for incident X"` — real notification wiring is future work.
 **Self-check:** 1) Topic vs partition — how do they affect ordering and throughput? 2) Consumer group — one consumer or many? 3) Acks: 0 vs 1 vs all — trade-offs? 4) Rebalancing — what triggers it, why it matters? 5) Dead-letter topic — when and why?
-**Answers:** 1) Topic = logical stream; partitions = ordered logs, keys hash to partitions. Ordering guaranteed *per partition*, not across topic. Throughput scales with partitions. 2) Consumer group = load-balanced set. One consumer per partition max within group. Multiple groups = each gets a full copy of the stream. 3) `acks=0` fire-and-forget (fastest, unsafe). `acks=1` leader acks (default; loses on leader failure). `acks=all` all in-sync replicas ack (safest, slowest). 4) Consumer joins/leaves, partition reassignment. Causes brief pause + duplicate reads. 5) After N failed processing attempts, move to DLQ topic; process out-of-band. Prevents one bad message stalling the consumer.
+**Answers:** 1) Topic = logical stream; partitions = ordered logs, keys hash to partitions. Ordering guaranteed _per partition_, not across topic. Throughput scales with partitions. 2) Consumer group = load-balanced set. One consumer per partition max within group. Multiple groups = each gets a full copy of the stream. 3) `acks=0` fire-and-forget (fastest, unsafe). `acks=1` leader acks (default; loses on leader failure). `acks=all` all in-sync replicas ack (safest, slowest). 4) Consumer joins/leaves, partition reassignment. Causes brief pause + duplicate reads. 5) After N failed processing attempts, move to DLQ topic; process out-of-band. Prevents one bad message stalling the consumer.
 
 ### ☐ Day 4 — Auditing + optimistic locking (`@Version`)
 
@@ -410,7 +420,7 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 
 **Resource:** Stripe docs "Webhook signature verification" (concepts) + Baeldung "HMAC SHA256 in Java".
 **Code:** on `INCIDENT_OPENED` Kafka event, `WebhookService` looks up subscribers for that tenant, POSTs the event to each subscriber's URL, signs body with HMAC-SHA256 of `secret + timestamp + body`, sends signature as `X-Roost-Signature` header. Retry with exponential backoff on 5xx; give up after 5 attempts.
-**Self-check:** 1) Why HMAC and not just an API key? 2) Why include timestamp in the signature? 3) Replay attacks — how does timestamp help? 4) Backoff strategy — pick one and defend. 5) Return code from *your* webhook endpoint — what do you accept?
+**Self-check:** 1) Why HMAC and not just an API key? 2) Why include timestamp in the signature? 3) Replay attacks — how does timestamp help? 4) Backoff strategy — pick one and defend. 5) Return code from _your_ webhook endpoint — what do you accept?
 **Answers:** 1) API key = static credential; if leaked, attacker impersonates permanently. HMAC = proves this message body was signed with the shared secret; can't be replayed with a different body. 2) Prevents replay: recipient rejects requests older than 5 min. 3) Attacker captures a legitimate call, replays later — signature valid but timestamp stale → reject. 4) Exponential backoff with jitter: base × 2^n + random. Prevents thundering-herd retries. Cap total retry time. 5) 2xx = success. 4xx = don't retry (they say the message was bad). 5xx = retry.
 
 ### ☐ Monday W17 — deep-work + review
@@ -492,8 +502,8 @@ Recall test on Weeks 10–19. Confidence per week. Generate `interview-qa/phase-
 
 ## Books & backup resources
 
-- *Effective Java* (Bloch) — read item by item during idle moments
-- *Spring Start Here* (Spilcă) — for topics that don't click
+- _Effective Java_ (Bloch) — read item by item during idle moments
+- _Spring Start Here_ (Spilcă) — for topics that don't click
 - Chad Darby "Spring Boot 3 Master Class" (Udemy) — course alternative to Amigoscode
 - Telusko / Bro Code / Java Brains — video alternatives per topic
 - Baeldung — the reference index for any Spring topic

@@ -1,5 +1,8 @@
 package com.chandu.roost.iocdemo;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class ProbeRunner {
 
     private final HttpProbeClient httpProbeClient;
