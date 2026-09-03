@@ -1,0 +1,3 @@
+roost:
+  probe:
+    default-interval-seconds: 300

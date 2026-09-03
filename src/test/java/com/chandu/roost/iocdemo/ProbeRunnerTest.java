@@ -1,5 +1,6 @@
 package com.chandu.roost.iocdemo;
 
+import com.chandu.roost.config.ProbeProperties;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -11,7 +12,7 @@ class ProbeRunnerTest {
 
         MockHttpProbeClient mockClient = new MockHttpProbeClient();
 
-        ProbeRunner runner = new ProbeRunner(mockClient);
+        ProbeRunner runner = new ProbeRunner(mockClient, new ProbeProperties(60,5000));
 
         String result = runner.run("https://example.com");
 
