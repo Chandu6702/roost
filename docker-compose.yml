@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: postgres:17
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: roost
+      POSTGRES_PASSWORD: roost
+      POSTGRES_DB: roost

@@ -65,7 +65,7 @@ Create `com.chandu.roost.config.ProbeProperties` as a Java record annotated `@Co
 **Self-check:** 1) `@Value("${x}")` vs `@ConfigurationProperties` — when do you use each? 2) What is "relaxed binding"? 3) How do profile-specific yml files override the base? 4) How is a Kubernetes-style env var (`ROOST_PROBE_DEFAULT_INTERVAL_SECONDS=10`) mapped? 5) Where do profile-specific properties come from in prod (yml file vs env var vs config server)?
 **Answers:** 1) `@Value` for one or two individual props; `@ConfigurationProperties` for a group with validation, IDE autocomplete, and record immutability. 2) Property key `roost.probe.default-interval-seconds` matches Java field `defaultIntervalSeconds`, kebab/snake/camel/underscore all bind. 3) `application-<profile>.yml` is loaded on top of `application.yml`; keys in the profile file override. If `roost.probe.default-interval-seconds` exists in both, the profile wins. 4) Env vars use `SCREAMING_SNAKE_CASE` and map by relaxed binding to `roost.probe.default-interval-seconds`. Underscores between segments become dots. 5) In prod: env vars (via k8s secrets/configmaps) or an external config source (Spring Cloud Config, Vault). Never commit prod secrets; `application-prod.yml` should hold defaults, not secrets.
 
-### ☐ Day 5 — Week 10 consolidation + first Flyway migration
+### ✅ Day 5 — Week 10 consolidation + first Flyway migration
 
 **Resource:** Baeldung "Flyway Migrations with Spring Boot" (skim, 10 min).
 **Code:** stand up Postgres via docker-compose (write `docker-compose.yml` at repo root — `postgres:17`, exposed on 5432, POSTGRES_USER/PASSWORD/DB set to `roost`). Update `application.yml`:
