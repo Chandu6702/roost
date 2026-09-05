@@ -95,7 +95,7 @@ Boot the app, confirm Flyway ran (table exists, `flyway_schema_history` populate
 **Self-check:** Mixed Qs across IoC, beans, config, profiles. + What does Flyway do that `ddl-auto=update` doesn't? Why should we prefer Flyway from Day 1?
 **Answers:** Flyway = versioned, ordered, immutable schema history. Every environment applies the same migrations in the same order; you can prove what schema prod is on; migrations code-review just like app code. `ddl-auto=update` guesses schema changes at startup from JPA entities — non-reproducible, can't handle destructive changes (drops, renames), can't add indexes or seed data, no history table.
 
-### ☐ Monday W10 — deep-work morning + weekly review evening
+### ✅ Monday W10 — deep-work morning + weekly review evening
 
 **Morning (~2.5 hrs):** clean up W10 code — refactor packages (`workspace/`, `probe/`, `health/`, `config/`), add proper `application-dev.yml` / `application-prod.yml`, verify `docker-compose up -d db && ./mvnw spring-boot:run` works from a fresh checkout.
 **Evening (~1.5 hrs):** recall test on IoC/DI/beans/config/Flyway → confidence scores in `reviews/week-10-review.md` → generate `interview-qa/week-10-spring-core.md` → plan W11 → DSA re-solve.
