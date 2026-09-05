@@ -1,4 +1,4 @@
-package com.chandu.roost.iocdemo;
+package com.chandu.roost.probe;
 
 import org.springframework.stereotype.Component;
 

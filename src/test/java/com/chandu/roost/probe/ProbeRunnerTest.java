@@ -1,4 +1,4 @@
-package com.chandu.roost.iocdemo;
+package com.chandu.roost.probe;
 
 import com.chandu.roost.config.ProbeProperties;
 import org.junit.jupiter.api.Test;
