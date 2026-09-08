@@ -106,7 +106,7 @@ Boot the app, confirm Flyway ran (table exists, `flyway_schema_history` populate
 
 **Goal by end of week:** `MonitorController` CRUD end-to-end with DTOs, validation, global error handling, pagination, and Swagger UI live at `/swagger-ui.html`.
 
-### ☐ Day 1 — `@RestController`, request mapping, HTTP verbs
+### ✅ Day 1 — `@RestController`, request mapping, HTTP verbs
 
 **Resource:** Baeldung "Spring `@RequestMapping`" + "Spring REST API Tutorial".
 **Code:** create `com.chandu.roost.monitor.MonitorController` with 5 endpoints: `GET /monitors`, `GET /monitors/{id}`, `POST /monitors`, `PUT /monitors/{id}`, `DELETE /monitors/{id}`. Back with an in-memory `Map<Long, Monitor>` in a `MonitorService` (Postgres wiring comes W12). Test with curl or IntelliJ HTTP client.
