@@ -16,41 +16,72 @@ public class MonitorController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Monitor>> getMonitors() {
-        return monitorService.getMonitors();
+    public ResponseEntity<List<MonitorResponse>> getMonitors() {
+        List<MonitorResponse> responses = monitorService.getMonitors()
+                .stream()
+                .map(monitor -> new MonitorResponse(
+                        monitor.getId(),
+                        monitor.getName(),
+                        monitor.getUrl(),
+                        monitor.getStatus(),
+                        monitor.getCheckIntervalSeconds()
+                ))
+                .toList();
+        return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Monitor> getMonitor(@PathVariable Long id) {
-        return monitorService.getMonitor(id);
+    public ResponseEntity<MonitorResponse> getMonitor(@PathVariable Long id) {
+        Monitor monitor = monitorService.getMonitor(id);
+        if (monitor == null) {
+            return ResponseEntity.notFound().build();
+        }
+        MonitorResponse response = new MonitorResponse(
+                monitor.getId(),
+                monitor.getName(),
+                monitor.getUrl(),
+                monitor.getStatus(),
+                monitor.getCheckIntervalSeconds()
+        );
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<Monitor> createMonitor(
-            @RequestBody Monitor monitor) {
-
-        return monitorService.createMonitor(
-                monitor.name(),
-                monitor.url(),
-                monitor.status()
+    public ResponseEntity<MonitorResponse> createMonitor(
+            @RequestBody MonitorRequest request) {
+        Monitor monitor = monitorService.createMonitor(request);
+        MonitorResponse response = new MonitorResponse(
+                monitor.getId(),
+                monitor.getName(),
+                monitor.getUrl(),
+                monitor.getStatus(),
+                monitor.getCheckIntervalSeconds()
         );
+        return ResponseEntity.status(201).body(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Monitor> updateMonitor(
+    public ResponseEntity<MonitorResponse> updateMonitor(
             @PathVariable Long id,
-            @RequestBody Monitor monitor) {
+            @RequestBody MonitorRequest request) {
 
-        return monitorService.updateMonitor(
-                id,
-                monitor.name(),
-                monitor.url(),
-                monitor.status()
+        Monitor monitor = monitorService.updateMonitor(id, request);
+        if (monitor == null) {
+            return ResponseEntity.notFound().build();
+        }
+        MonitorResponse response = new MonitorResponse(
+                monitor.getId(),
+                monitor.getName(),
+                monitor.getUrl(),
+                monitor.getStatus(),
+                monitor.getCheckIntervalSeconds()
         );
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMonitor(@PathVariable Long id) {
-        return monitorService.deleteMonitor(id);
+         monitorService.deleteMonitor(id);
+         return ResponseEntity.noContent().build();
     }
 }

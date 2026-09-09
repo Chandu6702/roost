@@ -1,7 +1,6 @@
 package com.chandu.roost.monitor;
-
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,69 +13,48 @@ public class MonitorService {
     private final Map<Long, Monitor> monitors = new HashMap<>();
     private long nextId = 1;
 
-    public ResponseEntity<List<Monitor>> getMonitors() {
-        return ResponseEntity.ok(new ArrayList<>(monitors.values()));
+    public List<Monitor> getMonitors() {
+        return new ArrayList<>(monitors.values());
     }
 
-    public ResponseEntity<Monitor> getMonitor(Long id) {
+    public Monitor getMonitor(Long id) {
         Monitor monitor = monitors.get(id);
-
-        if (monitor == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(monitor);
+        return monitor;
     }
 
-    public ResponseEntity<Monitor> createMonitor(
-            String name,
-            String url,
-            String status) {
+    public Monitor createMonitor(
+            MonitorRequest request) {
 
         Long id = nextId++;
 
         Monitor newMonitor = new Monitor(
                 id,
-                name,
-                url,
-                status
+                request.name(),
+                request.url(),
+                request.status(),
+                request.checkIntervalSeconds()
         );
 
         monitors.put(id, newMonitor);
 
-        return ResponseEntity.status(201).body(newMonitor);
+        return newMonitor;
     }
 
-    public ResponseEntity<Monitor> updateMonitor(
-            Long id,
-            String name,
-            String url,
-            String status) {
-
-        if (!monitors.containsKey(id)) {
-            return ResponseEntity.notFound().build();
-        }
-
+    public Monitor updateMonitor(Long id, MonitorRequest request) {
         Monitor updatedMonitor = new Monitor(
                 id,
-                name,
-                url,
-                status
+                request.name(),
+                request.url(),
+                request.status(),
+                request.checkIntervalSeconds()
         );
 
         monitors.put(id, updatedMonitor);
 
-        return ResponseEntity.ok(updatedMonitor);
+        return updatedMonitor;
     }
 
-    public ResponseEntity<Void> deleteMonitor(Long id) {
-
-        if (!monitors.containsKey(id)) {
-            return ResponseEntity.notFound().build();
-        }
-
+    public void deleteMonitor(Long id) {
         monitors.remove(id);
-
-        return ResponseEntity.noContent().build();
     }
 }

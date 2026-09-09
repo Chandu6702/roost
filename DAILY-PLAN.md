@@ -113,7 +113,7 @@ Boot the app, confirm Flyway ran (table exists, `flyway_schema_history` populate
 **Self-check:** 1) Difference between `@RequestMapping(method=GET)` and `@GetMapping`? 2) `@PathVariable` vs `@RequestParam` vs `@RequestBody`? 3) When would you return `ResponseEntity` vs a plain object? 4) Correct HTTP status code for successful `POST /monitors`? For `DELETE`? For "monitor not found on GET"? 5) What does `@RequestMapping` do at class level vs method level?
 **Answers:** 1) Shortcut — `@GetMapping` = `@RequestMapping(method = RequestMethod.GET)`. Prefer the shortcuts. 2) Path variable = part of URL (`/monitors/{id}`). Request param = query string (`?status=UP`). Request body = JSON payload deserialized. 3) `ResponseEntity` when you need to control status code and/or headers (e.g., 201 + `Location` header on create). Plain object = 200 OK. 4) 201 Created (with `Location: /monitors/{id}` header ideally); 204 No Content for DELETE; 404 Not Found. 5) Class-level `@RequestMapping("/monitors")` = base path; method-level adds sub-path.
 
-### ☐ Day 2 — DTOs, Jackson, records
+### ✅ Day 2 — DTOs, Jackson, records
 
 **Resource:** Baeldung "Java Records" + "Jackson with Spring".
 **Code:** split `Monitor` (domain entity — has all internal state) from `MonitorRequest` (client input) and `MonitorResponse` (client output) — both as Java records. `MonitorService.create(MonitorRequest)` maps input → entity; `MonitorController` maps entity → response. Use `@JsonProperty("check_interval_seconds")` on one field to see snake*case in JSON while keeping camelCase in Java.

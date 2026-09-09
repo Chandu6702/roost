@@ -2,6 +2,10 @@ spring:
   application:
     name: roost
 
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
   datasource:
     url: jdbc:postgresql://localhost:5433/roost
     username: roost
