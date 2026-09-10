@@ -8,6 +8,7 @@ public record MonitorResponse(
     String url,
     String status,
     @JsonProperty("check_interval_seconds")
-    Integer checkIntervalSeconds
+    Integer checkIntervalSeconds,
+    MonitorType type
 ) {
 }

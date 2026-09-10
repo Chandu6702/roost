@@ -120,7 +120,7 @@ Boot the app, confirm Flyway ran (table exists, `flyway_schema_history` populate
 **Self-check:** 1) Why separate DTOs from entities — what breaks if you use the entity everywhere? 2) Why records for DTOs — what do they give you? 3) `@JsonIgnore` vs `@JsonProperty(access = READ_ONLY)` — difference? 4) What happens if the client sends an unknown JSON field? How do you fail loud vs silent? 5) When Jackson deserializes into a record, how does it find the constructor?
 **Answers:** 1) Entity leaks internal fields (audit timestamps, tenant ID, versioning); ties JSON schema to DB schema — any DB refactor breaks the API contract; adds circular JSON on relationships. DTOs isolate the contract. 2) Immutability, `equals`/`hashCode`/`toString` free, compact syntax, safer as request/response objects. 3) `@JsonIgnore` = field never serialized nor deserialized. `@JsonProperty(access = READ_ONLY)` = serialized (in responses) but \_ignored* on deserialization (so a client can't set `id`). 4) Default: ignored silently. Fail loud: `spring.jackson.deserialization.fail-on-unknown-properties: true` in yml, or `@JsonIgnoreProperties(ignoreUnknown = false)` per class. 5) Jackson uses the canonical constructor of the record; annotate parameters or use `@JsonCreator` if names don't match JSON keys.
 
-### ☐ Day 3 — Bean Validation on `MonitorRequest`
+### ✅ Day 3 — Bean Validation on `MonitorRequest`
 
 **Resource:** Baeldung "Validation in Spring Boot" (Jakarta Bean Validation).
 **Code:** on `MonitorRequest` add: `@NotBlank` name, `@NotBlank @URL` url, `@Min(30) @Max(3600)` intervalSeconds, `@NotNull` type (enum). Add `@Valid` at the `@RequestBody` in the controller. Hit `POST /monitors` with an invalid body, inspect the raw 400 (ugly today — fixed tomorrow).

@@ -32,7 +32,8 @@ public class MonitorService {
                 request.name(),
                 request.url(),
                 request.status(),
-                request.checkIntervalSeconds()
+                request.checkIntervalSeconds(),
+                request.type()
         );
 
         monitors.put(id, newMonitor);
@@ -46,7 +47,8 @@ public class MonitorService {
                 request.name(),
                 request.url(),
                 request.status(),
-                request.checkIntervalSeconds()
+                request.checkIntervalSeconds(),
+                request.type()
         );
 
         monitors.put(id, updatedMonitor);

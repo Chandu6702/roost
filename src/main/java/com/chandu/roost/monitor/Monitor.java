@@ -9,13 +9,15 @@ public class Monitor {
     private String status;
     @JsonProperty("check_interval_seconds")
     private Integer checkIntervalSeconds;
+    private MonitorType type;
 
-    public Monitor(Long id, String name, String url, String status, Integer checkIntervalSeconds) {
+    public Monitor(Long id, String name, String url, String status, Integer checkIntervalSeconds, MonitorType type) {
         this.id = id;
         this.name = name;
         this.url = url;
         this.status = status;
         this.checkIntervalSeconds = checkIntervalSeconds;
+        this.type = type;
     }
 
     // Getters
@@ -37,6 +39,10 @@ public class Monitor {
 
     public Integer getCheckIntervalSeconds() {
         return checkIntervalSeconds;
+    }
+
+    public MonitorType getType() {
+        return type;
     }
 
 }

@@ -1,5 +1,6 @@
 package com.chandu.roost.monitor;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +25,8 @@ public class MonitorController {
                         monitor.getName(),
                         monitor.getUrl(),
                         monitor.getStatus(),
-                        monitor.getCheckIntervalSeconds()
+                        monitor.getCheckIntervalSeconds(),
+                        monitor.getType()
                 ))
                 .toList();
         return ResponseEntity.ok(responses);
@@ -41,21 +43,23 @@ public class MonitorController {
                 monitor.getName(),
                 monitor.getUrl(),
                 monitor.getStatus(),
-                monitor.getCheckIntervalSeconds()
+                monitor.getCheckIntervalSeconds(),
+                monitor.getType()
         );
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
     public ResponseEntity<MonitorResponse> createMonitor(
-            @RequestBody MonitorRequest request) {
+            @Valid @RequestBody MonitorRequest request) {
         Monitor monitor = monitorService.createMonitor(request);
         MonitorResponse response = new MonitorResponse(
                 monitor.getId(),
                 monitor.getName(),
                 monitor.getUrl(),
                 monitor.getStatus(),
-                monitor.getCheckIntervalSeconds()
+                monitor.getCheckIntervalSeconds(),
+                monitor.getType()
         );
         return ResponseEntity.status(201).body(response);
     }
@@ -63,7 +67,7 @@ public class MonitorController {
     @PutMapping("/{id}")
     public ResponseEntity<MonitorResponse> updateMonitor(
             @PathVariable Long id,
-            @RequestBody MonitorRequest request) {
+            @Valid @RequestBody MonitorRequest request) {
 
         Monitor monitor = monitorService.updateMonitor(id, request);
         if (monitor == null) {
@@ -74,7 +78,8 @@ public class MonitorController {
                 monitor.getName(),
                 monitor.getUrl(),
                 monitor.getStatus(),
-                monitor.getCheckIntervalSeconds()
+                monitor.getCheckIntervalSeconds(),
+                monitor.getType()
         );
         return ResponseEntity.ok(response);
     }
