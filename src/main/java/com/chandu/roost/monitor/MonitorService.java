@@ -1,6 +1,6 @@
 package com.chandu.roost.monitor;
-import org.springframework.stereotype.Service;
 
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,12 +19,15 @@ public class MonitorService {
 
     public Monitor getMonitor(Long id) {
         Monitor monitor = monitors.get(id);
+
+        if (monitor == null) {
+            throw new MonitorNotFoundException(id);
+        }
+
         return monitor;
     }
 
-    public Monitor createMonitor(
-            MonitorRequest request) {
-
+    public Monitor createMonitor(MonitorRequest request) {
         Long id = nextId++;
 
         Monitor newMonitor = new Monitor(
@@ -42,6 +45,11 @@ public class MonitorService {
     }
 
     public Monitor updateMonitor(Long id, MonitorRequest request) {
+
+        if (!monitors.containsKey(id)) {
+            throw new MonitorNotFoundException(id);
+        }
+
         Monitor updatedMonitor = new Monitor(
                 id,
                 request.name(),
@@ -57,6 +65,11 @@ public class MonitorService {
     }
 
     public void deleteMonitor(Long id) {
+
+        if (!monitors.containsKey(id)) {
+            throw new MonitorNotFoundException(id);
+        }
+
         monitors.remove(id);
     }
 }
