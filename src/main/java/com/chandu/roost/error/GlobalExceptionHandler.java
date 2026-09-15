@@ -1,5 +1,6 @@
 package com.chandu.roost.error;
 
+import com.chandu.roost.notification.NotificationChannelNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -72,6 +73,23 @@ public class GlobalExceptionHandler {
         );
 
         problem.setTitle("Internal Server Error");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("path", request.getRequestURI());
+
+        return problem;
+    }
+
+    @ExceptionHandler(NotificationChannelNotFoundException.class)
+    public ProblemDetail handleNotificationChannelNotFoundException(
+            NotificationChannelNotFoundException exception,
+            HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage()
+        );
+
+        problem.setTitle("Notification Channel Not Found");
         problem.setProperty("timestamp", Instant.now());
         problem.setProperty("path", request.getRequestURI());
 

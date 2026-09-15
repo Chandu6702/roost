@@ -141,7 +141,7 @@ Boot the app, confirm Flyway ran (table exists, `flyway_schema_history` populate
 **Self-check:** Mixed Qs from the week + one on why Swagger docs matter for a "real" project (recruiter/reviewer POV).
 **Answers:** Swagger UI = you can prove the API works without running curl; recruiter clicks Swagger link → instant credibility. Also self-documenting: the JSON schema for every DTO is discoverable without reading Java code. In interviews, "how do you document APIs?" — you say "OpenAPI 3, springdoc, JWT wired into the auth scheme" (that last part lands in W15).
 
-### ☐ Monday W11 — deep-work + review
+### ✅ Monday W11 — deep-work + review
 
 **Morning (~2.5 hrs):** implement a second controller (`NotificationChannelController` — same pattern), fully tested with curl. Consolidates the CRUD muscle.
 **Evening (~1.5 hrs):** recall test → `reviews/week-11-review.md` → `interview-qa/week-11-rest-layer.md` → plan W12.
