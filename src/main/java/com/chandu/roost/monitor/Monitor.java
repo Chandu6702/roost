@@ -1,28 +1,78 @@
 package com.chandu.roost.monitor;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.chandu.roost.workspace.Workspace;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 
+import java.time.Instant;
+
+@Entity
+@Table(name = "monitors")
 public class Monitor {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "workspace_id", nullable = false)
+    private Workspace workspace;
+
+    @Column(nullable = false, length = 120)
     private String name;
+
+    @Column(nullable = false, length = 2048)
     private String url;
-    private String status;
-    @JsonProperty("check_interval_seconds")
-    private Integer checkIntervalSeconds;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
     private MonitorType type;
 
-    public Monitor(Long id, String name, String url, String status, Integer checkIntervalSeconds, MonitorType type) {
-        this.id = id;
-        this.name = name;
-        this.url = url;
-        this.status = status;
-        this.checkIntervalSeconds = checkIntervalSeconds;
-        this.type = type;
+    @Column(name = "interval_seconds", nullable = false)
+    private Integer intervalSeconds;
+
+    @Column(name = "timeout_millis", nullable = false)
+    private Integer timeoutMillis;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    protected Monitor() {
     }
 
-    // Getters
+    public Monitor(
+            Workspace workspace,
+            String name,
+            String url,
+            MonitorType type,
+            Integer intervalSeconds,
+            Integer timeoutMillis,
+            Instant createdAt) {
+
+        this.workspace = workspace;
+        this.name = name;
+        this.url = url;
+        this.type = type;
+        this.intervalSeconds = intervalSeconds;
+        this.timeoutMillis = timeoutMillis;
+        this.createdAt = createdAt;
+    }
+
     public Long getId() {
         return id;
+    }
+
+    public Workspace getWorkspace() {
+        return workspace;
     }
 
     public String getName() {
@@ -33,16 +83,43 @@ public class Monitor {
         return url;
     }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public Integer getCheckIntervalSeconds() {
-        return checkIntervalSeconds;
-    }
-
     public MonitorType getType() {
         return type;
     }
 
+    public Integer getIntervalSeconds() {
+        return intervalSeconds;
+    }
+
+    public Integer getTimeoutMillis() {
+        return timeoutMillis;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setWorkspace(Workspace workspace) {
+        this.workspace = workspace;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public void setType(MonitorType type) {
+        this.type = type;
+    }
+
+    public void setIntervalSeconds(Integer intervalSeconds) {
+        this.intervalSeconds = intervalSeconds;
+    }
+
+    public void setTimeoutMillis(Integer timeoutMillis) {
+        this.timeoutMillis = timeoutMillis;
+    }
 }

@@ -1,92 +1,103 @@
 package com.chandu.roost.monitor;
 
+import com.chandu.roost.workspace.Workspace;
+import com.chandu.roost.workspace.WorkspaceRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class MonitorService {
 
-    private final Map<Long, Monitor> monitors = new HashMap<>();
-    private long nextId = 1;
-    public long getTotalMonitors() {
-        return monitors.size();
+    private final MonitorRepository monitorRepository;
+    private final WorkspaceRepository workspaceRepository;
+
+    public MonitorService(
+            MonitorRepository monitorRepository,
+            WorkspaceRepository workspaceRepository) {
+
+        this.monitorRepository = monitorRepository;
+        this.workspaceRepository = workspaceRepository;
     }
-    public List<Monitor> getMonitors(int page, int size, String sort) {
-        List<Monitor> allMonitors = new ArrayList<>(monitors.values());
 
-        String[]  sortParts = sort.split(",");
-        String field = sortParts[0];
-        String direction = sortParts.length > 1 ? sortParts[1] : "asc";
-        if("name".equals(field)){
-            allMonitors.sort((a, b) ->"desc".equalsIgnoreCase(direction) ? b.getName().compareToIgnoreCase(a.getName()) : a.getName().compareToIgnoreCase(b.getName()));
-        }
-        int start = page * size;
-        int end = Math.min(start + size, allMonitors.size());
+    public long getTotalMonitors() {
+        return monitorRepository.count();
+    }
 
-        if(start >= allMonitors.size()) {
-            return List.of();
-        }
-
-        return allMonitors.subList(start, end);
+    public List<Monitor> getMonitors() {
+        return monitorRepository.findAll();
     }
 
     public Monitor getMonitor(Long id) {
-        Monitor monitor = monitors.get(id);
-
-        if (monitor == null) {
-            throw new MonitorNotFoundException(id);
-        }
-
-        return monitor;
+        return monitorRepository.findById(id)
+                .orElseThrow(() -> new MonitorNotFoundException(id));
     }
 
     public Monitor createMonitor(MonitorRequest request) {
-        Long id = nextId++;
 
-        Monitor newMonitor = new Monitor(
-                id,
+        Workspace workspace = workspaceRepository.findById(request.workspaceId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Workspace with id " + request.workspaceId() + " was not found"
+                        ));
+
+        Monitor monitor = new Monitor(
+                workspace,
                 request.name(),
                 request.url(),
-                request.status(),
-                request.checkIntervalSeconds(),
-                request.type()
+                request.type(),
+                request.intervalSeconds(),
+                request.timeoutMillis(),
+                Instant.now()
         );
 
-        monitors.put(id, newMonitor);
-
-        return newMonitor;
+        return monitorRepository.save(monitor);
     }
 
     public Monitor updateMonitor(Long id, MonitorRequest request) {
 
-        if (!monitors.containsKey(id)) {
-            throw new MonitorNotFoundException(id);
-        }
+        Monitor monitor = getMonitor(id);
 
-        Monitor updatedMonitor = new Monitor(
-                id,
-                request.name(),
-                request.url(),
-                request.status(),
-                request.checkIntervalSeconds(),
-                request.type()
-        );
+        Workspace workspace = workspaceRepository.findById(request.workspaceId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "Workspace with id " + request.workspaceId() + " was not found"
+                        ));
 
-        monitors.put(id, updatedMonitor);
+        monitor.setWorkspace(workspace);
+        monitor.setName(request.name());
+        monitor.setUrl(request.url());
+        monitor.setType(request.type());
+        monitor.setIntervalSeconds(request.intervalSeconds());
+        monitor.setTimeoutMillis(request.timeoutMillis());
 
-        return updatedMonitor;
+        return monitorRepository.save(monitor);
     }
 
     public void deleteMonitor(Long id) {
+        Monitor monitor = getMonitor(id);
+        monitorRepository.delete(monitor);
+    }
 
-        if (!monitors.containsKey(id)) {
-            throw new MonitorNotFoundException(id);
-        }
+    public List<Monitor> getMonitorsByWorkspace(Long workspaceId) {
+        return monitorRepository.findByWorkspaceId(workspaceId);
+    }
 
-        monitors.remove(id);
+    public List<Monitor> searchMonitors(
+            Long workspaceId,
+            String q) {
+
+        return monitorRepository
+                .findByWorkspaceIdAndNameContainingIgnoreCase(
+                        workspaceId,
+                        q
+                );
+    }
+
+    public Page<Monitor> getMonitors(Pageable pageable) {
+        return monitorRepository.findAll(pageable);
     }
 }

@@ -1,0 +1,10 @@
+CREATE TABLE monitors (
+    id BIGSERIAL PRIMARY KEY,
+    workspace_id BIGINT NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    url VARCHAR(2048) NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    interval_seconds INT NOT NULL DEFAULT 60,
+    timeout_millis INT NOT NULL DEFAULT 5000,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

@@ -1,4 +1,7 @@
 package com.chandu.roost.workspace;
 
-public record CreateWorkspaceRequest(String name) {
+public record CreateWorkspaceRequest(
+        String name,
+        String slug
+) {
 }

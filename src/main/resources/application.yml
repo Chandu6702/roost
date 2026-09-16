@@ -13,6 +13,11 @@ spring:
 
   flyway:
     enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+
 server:
   port: 8080
 

@@ -2,13 +2,21 @@ package com.chandu.roost.monitor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.time.Instant;
+
 public record MonitorResponse(
-    Long id,
-    String name,
-    String url,
-    String status,
-    @JsonProperty("check_interval_seconds")
-    Integer checkIntervalSeconds,
-    MonitorType type
+        Long id,
+        Long workspaceId,
+        String name,
+        String url,
+
+        @JsonProperty("interval_seconds")
+        Integer intervalSeconds,
+
+        @JsonProperty("timeout_millis")
+        Integer timeoutMillis,
+
+        MonitorType type,
+        Instant createdAt
 ) {
 }

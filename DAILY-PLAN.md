@@ -152,14 +152,14 @@ Boot the app, confirm Flyway ran (table exists, `flyway_schema_history` populate
 
 **Goal by end of week:** monitors are persisted in Postgres, retrievable via Spring Data repositories, related to workspaces and probe results; you have hit N+1 and fixed it; you have EXPLAIN ANALYZE'd a real query and added an index.
 
-### ☐ Day 1 — JPA + first `@Entity` + Flyway migration
+### ✅ Day 1 — JPA + first `@Entity` + Flyway migration
 
 **Resource:** Baeldung "A Guide to JPA with Spring".
 **Code:** write `V2__monitors.sql` (create table `monitors` with FK to `workspaces`, columns `id`, `workspace_id`, `name`, `url`, `type`, `interval_seconds`, `timeout_millis`, `created_at`). Create `com.chandu.roost.workspace.Workspace` and `com.chandu.roost.monitor.Monitor` `@Entity` classes matching. Use `@Table`, `@Id @GeneratedValue`, `@Column(nullable = false)`. Set `spring.jpa.hibernate.ddl-auto: validate` (not `update` — Flyway owns schema). Boot the app, confirm no schema errors.
 **Self-check:** 1) Why `ddl-auto: validate` and not `update` when using Flyway? 2) `@GeneratedValue(strategy = IDENTITY)` vs `SEQUENCE` on Postgres? 3) What does `@Column(nullable = false)` do at runtime vs at schema-generation time? 4) Where should JPA annotations live — on fields or getters? 5) Why don't records make good JPA entities?
 **Answers:** 1) `validate` = Hibernate checks entities match the schema Flyway created and fails startup on mismatch. `update` would try to alter the schema itself, competing with Flyway → chaos. 2) `IDENTITY` = uses Postgres `BIGSERIAL` (auto-increment column). `SEQUENCE` = uses an explicit Postgres sequence, allows batching (Hibernate can pre-fetch IDs). `SEQUENCE` is usually preferred for bulk inserts. 3) Runtime: Hibernate throws before flushing. Schema-gen time (if you were using `create`): adds NOT NULL to the DDL. With Flyway you control DDL — the annotation only matters for validation and for Hibernate's own null checks. 4) Fields — modern convention, cleaner. Was historically getters (Hibernate uses reflection on either). 5) Records are immutable + final — JPA needs a no-arg constructor + settable fields for lazy loading proxies. Use classes.
 
-### ☐ Day 2 — Spring Data JPA repositories
+### ✅ Day 2 — Spring Data JPA repositories
 
 **Resource:** Baeldung "Introduction to Spring Data JPA".
 **Code:** `WorkspaceRepository extends JpaRepository<Workspace, Long>` with `Optional<Workspace> findBySlug(String slug)`. `MonitorRepository extends JpaRepository<Monitor, Long>` with `List<Monitor> findByWorkspaceId(Long workspaceId)`, `List<Monitor> findByWorkspaceIdAndNameContainingIgnoreCase(Long workspaceId, String q)`. Wire into services; replace the in-memory `Map` in `MonitorService`.
