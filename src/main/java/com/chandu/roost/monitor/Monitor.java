@@ -1,19 +1,12 @@
 package com.chandu.roost.monitor;
 
+import com.chandu.roost.probe.ProbeResult;
 import com.chandu.roost.workspace.Workspace;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "monitors")
@@ -46,6 +39,8 @@ public class Monitor {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    @OneToMany(mappedBy = "monitor")
+    private List<ProbeResult> probeResults = new ArrayList<>();
     protected Monitor() {
     }
 
@@ -65,6 +60,11 @@ public class Monitor {
         this.intervalSeconds = intervalSeconds;
         this.timeoutMillis = timeoutMillis;
         this.createdAt = createdAt;
+    }
+
+    public void addProbeResult(ProbeResult probeResult){
+        probeResults.add(probeResult);
+        probeResult.setMonitor(this);
     }
 
     public Long getId() {

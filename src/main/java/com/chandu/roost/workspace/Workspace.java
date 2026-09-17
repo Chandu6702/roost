@@ -1,11 +1,10 @@
 package com.chandu.roost.workspace;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.chandu.roost.monitor.Monitor;
+import jakarta.persistence.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "workspaces")
@@ -20,6 +19,9 @@ public class Workspace {
 
     @Column(nullable = false, unique = true, length = 120)
     private String slug;
+
+    @OneToMany(mappedBy = "workspace")
+    private List<Monitor> monitors = new ArrayList<>();
 
     protected Workspace() {
     }
