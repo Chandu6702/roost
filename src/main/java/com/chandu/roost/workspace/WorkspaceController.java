@@ -3,6 +3,8 @@ package com.chandu.roost.workspace;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/workspaces")
 public class WorkspaceController {
@@ -29,5 +31,11 @@ public class WorkspaceController {
         );
 
         return ResponseEntity.status(201).body(workspace);
+    }
+
+    @GetMapping("/with-monitors")
+    public ResponseEntity<String> getWorkspacesWithMonitors() {
+        service.getWorkspacesWithMonitors();
+        return ResponseEntity.ok("N+1 query executed. Check SQL logs.");
     }
 }

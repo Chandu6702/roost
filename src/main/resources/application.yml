@@ -17,6 +17,11 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
+    show-sql: true
+
+  logging:
+    level:
+      org.hibernate.SQL: DEBUG
 
 server:
   port: 8080

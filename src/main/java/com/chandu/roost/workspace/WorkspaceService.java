@@ -1,6 +1,9 @@
 package com.chandu.roost.workspace;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class WorkspaceService {
@@ -22,5 +25,18 @@ public class WorkspaceService {
                         new IllegalArgumentException(
                                 "Workspace with slug " + slug + " was not found"
                         ));
+    }
+
+    @Transactional
+    public List<Workspace> getWorkspacesWithMonitors() {
+
+        List<Workspace> workspaces =
+                workspaceRepository.findAllWithMonitorsUsingGraph();
+
+        for (Workspace workspace : workspaces) {
+            workspace.getMonitors().size();
+        }
+
+        return workspaces;
     }
 }

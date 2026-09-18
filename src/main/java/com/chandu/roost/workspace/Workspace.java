@@ -4,6 +4,7 @@ import com.chandu.roost.monitor.Monitor;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -49,5 +50,9 @@ public class Workspace {
 
     public void setSlug(String slug) {
         this.slug = slug;
+    }
+
+    public List<Monitor> getMonitors() {
+        return monitors;
     }
 }
