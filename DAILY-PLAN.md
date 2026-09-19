@@ -180,7 +180,7 @@ Boot the app, confirm Flyway ran (table exists, `flyway_schema_history` populate
 **Self-check:** 1) What's the N+1 problem in one sentence? 2) `JOIN FETCH` vs `@EntityGraph` — which do you prefer and why? 3) When does N+1 hurt more — in a list endpoint or a detail endpoint? 4) How would you detect N+1 in production automatically? 5) `Hibernate.initialize(...)` — what does it do and when would you use it?
 **Answers:** 1) Loading a parent list triggers one query, then accessing a lazy child collection on each parent triggers N more — total 1+N SQL round trips instead of 1. 2) Both work; `@EntityGraph` on repo method is more Spring-idiomatic and composes better with pagination. `JOIN FETCH` in JPQL breaks pagination with a warning (Hibernate does in-memory paging — dangerous on large sets). 3) List endpoint — 1 workspace list × N per-workspace query multiplies. Detail endpoint at least has bounded N. 4) Integration tests with a query counter (Hypersistence Utils' `SQLStatementCountValidator`) that asserts max N queries. Or log-based alerting on request P99 query count. 5) Forces initialization of a lazy proxy while the session is still open. Useful when you must return an entity but can't restructure to a projection.
 
-### ☐ Day 5 — Week 12 consolidation + SQL fluency + indexes
+### ✅ Day 5 — Week 12 consolidation + SQL fluency + indexes
 
 **Resource:** SQLBolt (SELECT/JOIN sections, skim) + Use The Index Luke chapters 1–2.
 **Code:** on the running Postgres — `psql -U roost` or DBeaver — write raw SQL for "the 10 latest probe results per monitor" (window function or lateral join). `EXPLAIN ANALYZE` your `MonitorRepository.findByWorkspaceId(...)` query. Add `V4__idx_monitors_workspace.sql`:
