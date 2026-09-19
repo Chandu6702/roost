@@ -1,8 +1,11 @@
 package com.chandu.roost.monitor;
 
+import com.chandu.roost.probe.ProbeResultResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,11 +68,30 @@ public class MonitorController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MonitorResponse> getMonitor(@PathVariable Long id) {
-
+    public ResponseEntity<MonitorDetailResponse> getMonitor(@PathVariable Long id, Pageable pageable) {
+        if (pageable.getSort().isUnsorted()) {
+            pageable = PageRequest.of(
+                    pageable.getPageNumber(),
+                    pageable.getPageSize(),
+                    Sort.by(Sort.Direction.DESC, "probedAt")
+            );
+        }
         Monitor monitor = monitorService.getMonitor(id);
 
-        MonitorResponse response = toResponse(monitor);
+        Page<ProbeResultResponse> probeResults =
+                monitorService.getProbeResults(id, pageable);
+
+        MonitorDetailResponse response = new MonitorDetailResponse(
+                monitor.getId(),
+                monitor.getWorkspace().getId(),
+                monitor.getName(),
+                monitor.getUrl(),
+                monitor.getIntervalSeconds(),
+                monitor.getTimeoutMillis(),
+                monitor.getType(),
+                monitor.getCreatedAt(),
+                probeResults
+        );
 
         return ResponseEntity.ok(response);
     }

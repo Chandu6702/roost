@@ -194,7 +194,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** Mixed + What's the composite index rule you just applied and why?
 **Answers:** Composite indexes: leftmost prefix matters. `(monitor_id, probed_at DESC)` supports "find latest results for a monitor" perfectly. Would NOT help "latest across all monitors" (needs `(probed_at, monitor_id)` or a different plan). Never index every column — write costs.
 
-### ☐ Monday W12 — deep-work + review
+### ✅ Monday W12 — deep-work + review
 
 **Morning (~2.5 hrs):** wire real Postgres end-to-end: `POST /monitors` persists, `GET /monitors/{id}` reads with paginated probe-result history. Fix any N+1 that shows up.
 **Evening (~1.5 hrs):** recall test → `reviews/week-12-review.md` → `interview-qa/week-12-data-layer.md` (N+1 is a top-3 interview question — write 5 variants) → plan W13.

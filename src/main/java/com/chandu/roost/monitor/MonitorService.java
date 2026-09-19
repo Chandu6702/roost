@@ -1,5 +1,7 @@
 package com.chandu.roost.monitor;
 
+import com.chandu.roost.probe.ProbeResultRepository;
+import com.chandu.roost.probe.ProbeResultResponse;
 import com.chandu.roost.workspace.Workspace;
 import com.chandu.roost.workspace.WorkspaceRepository;
 import org.springframework.data.domain.Page;
@@ -14,13 +16,16 @@ public class MonitorService {
 
     private final MonitorRepository monitorRepository;
     private final WorkspaceRepository workspaceRepository;
+    private final ProbeResultRepository probeResultRepository;
 
     public MonitorService(
             MonitorRepository monitorRepository,
-            WorkspaceRepository workspaceRepository) {
+            WorkspaceRepository workspaceRepository,
+            ProbeResultRepository probeResultRepository) {
 
         this.monitorRepository = monitorRepository;
         this.workspaceRepository = workspaceRepository;
+        this.probeResultRepository = probeResultRepository;
     }
 
     public long getTotalMonitors() {
@@ -99,5 +104,20 @@ public class MonitorService {
 
     public Page<Monitor> getMonitors(Pageable pageable) {
         return monitorRepository.findAll(pageable);
+    }
+
+    public Page<ProbeResultResponse> getProbeResults(
+            Long monitorId,
+            Pageable pageable) {
+
+        return probeResultRepository
+                .findByMonitorId(monitorId, pageable)
+                .map(probeResult -> new ProbeResultResponse(
+                        probeResult.getId(),
+                        probeResult.getProbedAt(),
+                        probeResult.getStatus(),
+                        probeResult.getLatencyMs(),
+                        probeResult.getErrorMessage()
+                ));
     }
 }
