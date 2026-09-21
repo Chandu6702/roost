@@ -1,4 +1,4 @@
-package com.chandu.roost.monitor;
+package com.chandu.roost.entity;
 
 public enum MonitorType {
     HTTP,

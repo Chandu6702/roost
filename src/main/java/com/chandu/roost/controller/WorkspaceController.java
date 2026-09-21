@@ -1,9 +1,10 @@
-package com.chandu.roost.workspace;
+package com.chandu.roost.controller;
 
+import com.chandu.roost.dto.CreateWorkspaceRequest;
+import com.chandu.roost.entity.Workspace;
+import com.chandu.roost.service.WorkspaceService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/workspaces")

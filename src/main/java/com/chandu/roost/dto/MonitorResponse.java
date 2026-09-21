@@ -1,5 +1,6 @@
-package com.chandu.roost.monitor;
+package com.chandu.roost.dto;
 
+import com.chandu.roost.entity.MonitorType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Instant;

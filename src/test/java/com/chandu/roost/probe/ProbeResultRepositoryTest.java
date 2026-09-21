@@ -1,10 +1,12 @@
 package com.chandu.roost.probe;
 
-import com.chandu.roost.monitor.Monitor;
-import com.chandu.roost.monitor.MonitorRepository;
-import com.chandu.roost.monitor.MonitorType;
-import com.chandu.roost.workspace.Workspace;
-import com.chandu.roost.workspace.WorkspaceRepository;
+import com.chandu.roost.entity.ProbeResult;
+import com.chandu.roost.entity.Monitor;
+import com.chandu.roost.repository.MonitorRepository;
+import com.chandu.roost.entity.MonitorType;
+import com.chandu.roost.repository.ProbeResultRepository;
+import com.chandu.roost.entity.Workspace;
+import com.chandu.roost.repository.WorkspaceRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

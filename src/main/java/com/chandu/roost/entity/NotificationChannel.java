@@ -1,4 +1,4 @@
-package com.chandu.roost.notification;
+package com.chandu.roost.entity;
 
 public class NotificationChannel {
     private Long id;

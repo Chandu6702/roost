@@ -1,6 +1,5 @@
-package com.chandu.roost.probe;
+package com.chandu.roost.entity;
 
-import com.chandu.roost.monitor.Monitor;
 import jakarta.persistence.*;
 
 import java.time.Instant;

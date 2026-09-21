@@ -1,9 +1,13 @@
-package com.chandu.roost.monitor;
+package com.chandu.roost.service;
 
+import com.chandu.roost.dto.MonitorRequest;
+import com.chandu.roost.entity.Monitor;
+import com.chandu.roost.error.MonitorNotFoundException;
+import com.chandu.roost.repository.MonitorRepository;
 import com.chandu.roost.repository.ProbeResultRepository;
-import com.chandu.roost.probe.ProbeResultResponse;
-import com.chandu.roost.workspace.Workspace;
-import com.chandu.roost.workspace.WorkspaceRepository;
+import com.chandu.roost.dto.ProbeResultResponse;
+import com.chandu.roost.entity.Workspace;
+import com.chandu.roost.repository.WorkspaceRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

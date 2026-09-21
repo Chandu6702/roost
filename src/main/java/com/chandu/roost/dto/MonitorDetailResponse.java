@@ -1,6 +1,6 @@
-package com.chandu.roost.monitor;
+package com.chandu.roost.dto;
 
-import com.chandu.roost.probe.ProbeResultResponse;
+import com.chandu.roost.entity.MonitorType;
 import org.springframework.data.domain.Page;
 
 import java.time.Instant;

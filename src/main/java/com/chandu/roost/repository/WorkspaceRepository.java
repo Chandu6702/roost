@@ -1,5 +1,6 @@
-package com.chandu.roost.workspace;
+package com.chandu.roost.repository;
 
+import com.chandu.roost.entity.Workspace;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

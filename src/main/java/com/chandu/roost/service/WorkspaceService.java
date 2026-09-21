@@ -1,5 +1,7 @@
-package com.chandu.roost.workspace;
+package com.chandu.roost.service;
 
+import com.chandu.roost.entity.Workspace;
+import com.chandu.roost.repository.WorkspaceRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 

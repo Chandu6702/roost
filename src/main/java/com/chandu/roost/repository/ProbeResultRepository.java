@@ -1,5 +1,6 @@
-package com.chandu.roost.probe;
+package com.chandu.roost.repository;
 
+import com.chandu.roost.entity.ProbeResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

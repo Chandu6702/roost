@@ -1,4 +1,4 @@
-package com.chandu.roost.notification;
+package com.chandu.roost.error;
 
 public class NotificationChannelNotFoundException extends RuntimeException {
 

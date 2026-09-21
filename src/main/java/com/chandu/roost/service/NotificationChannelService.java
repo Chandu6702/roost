@@ -1,5 +1,7 @@
-package com.chandu.roost.notification;
+package com.chandu.roost.service;
 
+import com.chandu.roost.error.NotificationChannelNotFoundException;
+import com.chandu.roost.entity.NotificationChannel;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

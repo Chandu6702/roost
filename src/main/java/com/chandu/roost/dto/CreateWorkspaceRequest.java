@@ -1,4 +1,4 @@
-package com.chandu.roost.workspace;
+package com.chandu.roost.dto;
 
 public record CreateWorkspaceRequest(
         String name,

@@ -1,4 +1,4 @@
-package com.chandu.roost.probe;
+package com.chandu.roost.dto;
 
 import java.time.Instant;
 

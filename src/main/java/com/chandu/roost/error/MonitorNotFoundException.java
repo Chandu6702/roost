@@ -1,4 +1,4 @@
-package com.chandu.roost.monitor;
+package com.chandu.roost.error;
 
 public class MonitorNotFoundException extends RuntimeException {
 

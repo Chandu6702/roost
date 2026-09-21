@@ -1,5 +1,6 @@
-package com.chandu.roost.monitor;
+package com.chandu.roost.repository;
 
+import com.chandu.roost.entity.Monitor;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

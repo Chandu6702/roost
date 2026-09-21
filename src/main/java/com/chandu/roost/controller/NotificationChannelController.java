@@ -1,5 +1,7 @@
-package com.chandu.roost.notification;
+package com.chandu.roost.controller;
 
+import com.chandu.roost.entity.NotificationChannel;
+import com.chandu.roost.service.NotificationChannelService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
