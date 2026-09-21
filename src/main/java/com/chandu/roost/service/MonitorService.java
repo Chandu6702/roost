@@ -1,6 +1,6 @@
 package com.chandu.roost.monitor;
 
-import com.chandu.roost.probe.ProbeResultRepository;
+import com.chandu.roost.repository.ProbeResultRepository;
 import com.chandu.roost.probe.ProbeResultResponse;
 import com.chandu.roost.workspace.Workspace;
 import com.chandu.roost.workspace.WorkspaceRepository;

@@ -1,6 +1,6 @@
 package com.chandu.roost.monitor;
 
-import com.chandu.roost.probe.ProbeResult;
+import com.chandu.roost.entity.ProbeResult;
 import com.chandu.roost.workspace.Workspace;
 import jakarta.persistence.*;
 
