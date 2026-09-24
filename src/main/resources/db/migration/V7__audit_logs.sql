@@ -1,0 +1,6 @@
+CREATE TABLE audit_logs (
+    id BIGSERIAL PRIMARY KEY,
+    incident_id BIGINT NOT NULL REFERENCES incidents(id) ON DELETE CASCADE,
+    action VARCHAR(100) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

@@ -73,4 +73,12 @@ public class Incident {
     public String getSummary() {
         return summary;
     }
+
+    public void setStatus(IncidentStatus incidentStatus) {
+        this.status = incidentStatus;
+    }
+
+    public void setResolvedAt(Instant now) {
+        this.resolvedAt = now;
+    }
 }

@@ -2,15 +2,18 @@ package com.chandu.roost.service;
 
 import com.chandu.roost.dto.MonitorRequest;
 import com.chandu.roost.entity.Monitor;
+import com.chandu.roost.entity.ProbeSchedule;
 import com.chandu.roost.error.MonitorNotFoundException;
 import com.chandu.roost.repository.MonitorRepository;
 import com.chandu.roost.repository.ProbeResultRepository;
 import com.chandu.roost.dto.ProbeResultResponse;
 import com.chandu.roost.entity.Workspace;
+import com.chandu.roost.repository.ProbeScheduleRepository;
 import com.chandu.roost.repository.WorkspaceRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,15 +24,18 @@ public class MonitorService {
     private final MonitorRepository monitorRepository;
     private final WorkspaceRepository workspaceRepository;
     private final ProbeResultRepository probeResultRepository;
+    private final ProbeScheduleRepository probeScheduleRepository;
 
     public MonitorService(
             MonitorRepository monitorRepository,
             WorkspaceRepository workspaceRepository,
-            ProbeResultRepository probeResultRepository) {
+            ProbeResultRepository probeResultRepository,
+            ProbeScheduleRepository probeScheduleRepository) {
 
         this.monitorRepository = monitorRepository;
         this.workspaceRepository = workspaceRepository;
         this.probeResultRepository = probeResultRepository;
+        this.probeScheduleRepository = probeScheduleRepository;
     }
 
     public long getTotalMonitors() {
@@ -45,6 +51,7 @@ public class MonitorService {
                 .orElseThrow(() -> new MonitorNotFoundException(id));
     }
 
+    @Transactional
     public Monitor createMonitor(MonitorRequest request) {
 
         Workspace workspace = workspaceRepository.findById(request.workspaceId())
@@ -63,7 +70,16 @@ public class MonitorService {
                 Instant.now()
         );
 
-        return monitorRepository.save(monitor);
+        Monitor savedMonitor = monitorRepository.save(monitor);
+
+        ProbeSchedule schedule = new ProbeSchedule(
+                savedMonitor,
+                Instant.now()
+        );
+
+        probeScheduleRepository.save(schedule);
+
+        return savedMonitor;
     }
 
     public Monitor updateMonitor(Long id, MonitorRequest request) {

@@ -212,14 +212,14 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** 1) Which layer owns validation? 2) Which layer owns transactions? 3) Should the controller call the repository directly? 4) Rich vs anemic domain — what's the difference? 5) Where do enums live?
 **Answers:** 1) Controller boundary (`@Valid` on `@RequestBody`); domain-invariant validation lives inside the entity/service. 2) Service. `@Transactional` on repo methods works but hides intent. 3) No — always through service; skipping bypasses transactions and business rules. 4) Rich = entities carry behavior (`monitor.markUnhealthy()`); anemic = entities are getters/setters, all logic in services. Rich is better for complex domains; anemic OK for CRUD. 5) In `domain/` — they're part of the model.
 
-### ☐ Day 2 — `@Transactional` deep dive
+### ✅ Day 2 — `@Transactional` deep dive
 
 **Resource:** Baeldung "Transactions With Spring and JPA".
 **Code:** `MonitorService.createMonitor(...)` — write to `monitors` AND write initial `probe_schedule` row (create `V6__probe_schedule.sql`) — inside one `@Transactional` method. Force a `RuntimeException` after the first insert; verify both rows rolled back.
 **Self-check:** 1) What triggers rollback by default? 2) How do you make checked exceptions roll back? 3) What is a "self-invocation" problem? 4) What does `@Transactional(readOnly = true)` actually do? 5) Where should `@Transactional` sit — controller, service, or repository?
 **Answers:** 1) Runtime exceptions and Errors. Checked exceptions do NOT roll back by default. 2) `@Transactional(rollbackFor = SomeCheckedException.class)`. 3) Calling one `@Transactional` method from another _inside the same bean_ uses direct method call — bypasses the proxy — so the annotation on the inner method is ignored. Fix: move the inner call to a different bean, or use `TransactionTemplate`. 4) Signals to the tx manager it's read-only (for optimizations like skipping dirty-check on flush); doesn't prevent writes but Hibernate skips some housekeeping. 5) Service. Controller doesn't do work; repository is too fine-grained for multi-repo operations.
 
-### ☐ Day 3 — Isolation levels & propagation
+### ✅ Day 3 — Isolation levels & propagation
 
 **Resource:** Baeldung "Spring Transaction Propagation and Isolation".
 **Code:** demonstrate `REQUIRES_NEW` — write `AuditService.logStateChange(...)` annotated `@Transactional(propagation = REQUIRES_NEW)`. Call it from `IncidentService.resolve(...)` (which is `@Transactional(REQUIRED)`). Throw from `resolve` after the audit call. The incident update rolls back, the audit row survives. Prove it in an integration test.
