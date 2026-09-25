@@ -2,6 +2,7 @@ package com.chandu.roost.service;
 
 import com.chandu.roost.dto.MonitorRequest;
 import com.chandu.roost.entity.Monitor;
+import com.chandu.roost.entity.MonitorType;
 import com.chandu.roost.entity.ProbeSchedule;
 import com.chandu.roost.error.MonitorNotFoundException;
 import com.chandu.roost.repository.MonitorRepository;
@@ -10,8 +11,10 @@ import com.chandu.roost.dto.ProbeResultResponse;
 import com.chandu.roost.entity.Workspace;
 import com.chandu.roost.repository.ProbeScheduleRepository;
 import com.chandu.roost.repository.WorkspaceRepository;
+import com.chandu.roost.specification.MonitorSpecification;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -122,8 +125,17 @@ public class MonitorService {
                 );
     }
 
-    public Page<Monitor> getMonitors(Pageable pageable) {
-        return monitorRepository.findAll(pageable);
+    public Page<Monitor> getMonitors(
+            Pageable pageable,
+            Long workspaceId,
+            MonitorType type) {
+        Specification<Monitor> specification =
+                Specification.allOf(
+                        MonitorSpecification.belongsToWorkspace(workspaceId),
+                        MonitorSpecification.hasType(type)
+                );
+
+        return monitorRepository.findAll(specification, pageable);
     }
 
     public Page<ProbeResultResponse> getProbeResults(

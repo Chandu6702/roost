@@ -4,6 +4,7 @@ import com.chandu.roost.entity.Monitor;
 import com.chandu.roost.dto.MonitorDetailResponse;
 import com.chandu.roost.dto.MonitorRequest;
 import com.chandu.roost.dto.MonitorResponse;
+import com.chandu.roost.entity.MonitorType;
 import com.chandu.roost.service.MonitorService;
 import com.chandu.roost.dto.ProbeResultResponse;
 import jakarta.validation.Valid;
@@ -28,9 +29,10 @@ public class MonitorController {
 
     @GetMapping
     public ResponseEntity<Page<MonitorResponse>> getMonitors(
-            Pageable pageable) {
-
-        Page<MonitorResponse> responses = monitorService.getMonitors(pageable)
+            Pageable pageable,
+            @RequestParam(required = false) Long workspaceId,
+            @RequestParam(required = false) MonitorType type) {
+        Page<MonitorResponse> responses = monitorService.getMonitors(pageable, workspaceId, type)
                 .map(monitor -> new MonitorResponse(
                         monitor.getId(),
                         monitor.getWorkspace().getId(),

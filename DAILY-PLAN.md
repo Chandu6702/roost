@@ -226,7 +226,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** 1) Default propagation? 2) `REQUIRES_NEW` vs `NESTED`? 3) `READ_COMMITTED` vs `REPEATABLE_READ` vs `SERIALIZABLE` — pick one and describe. 4) Postgres default isolation? 5) What is a phantom read?
 **Answers:** 1) `REQUIRED` — join existing tx or start one. 2) `REQUIRES_NEW` = suspend outer, start a truly independent tx. `NESTED` = savepoint inside outer tx; inner rollback returns to savepoint, outer can still commit — only supported by some drivers/DBs, awkward with JPA. 3) `REPEATABLE_READ`: rows you read once return the same values if you re-read them within the tx (no non-repeatable reads). 4) `READ_COMMITTED`. 5) Re-running a query returns rows that were inserted (by another tx) between the two runs — the row wasn't there before, now it's there.
 
-### ☐ Day 4 — Pagination + filtering (real, via Spring Data)
+### ✅ Day 4 — Pagination + filtering (real, via Spring Data)
 
 **Resource:** Baeldung "Spring Data Pagination and Sorting" + "Spring Data JPA `Specification`".
 **Code:** `GET /monitors?page=0&size=10&sort=name,asc&status=UP&type=HTTP` — accept `Pageable` and query params; write a `MonitorSpecification` (`Specification<Monitor>`) that composes optional filters. Return `Page<MonitorResponse>`.
