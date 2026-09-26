@@ -12,9 +12,13 @@ public class AuditLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "incident_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "incident_id")
     private Incident incident;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "monitor_id")
+    private Monitor monitor;
 
     @Column(nullable = false, length = 100)
     private String action;
@@ -31,10 +35,18 @@ public class AuditLog {
         this.createdAt = createdAt;
     }
 
+    public AuditLog(Monitor monitor, String action, Instant createdAt) {
+        this.monitor = monitor;
+        this.action = action;
+        this.createdAt = createdAt;
+    }
     public Long getId() {
         return id;
     }
 
+    public Monitor getMonitor() {
+        return monitor;
+    }
     public Incident getIncident() {
         return incident;
     }

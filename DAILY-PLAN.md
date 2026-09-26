@@ -233,7 +233,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** 1) `Pageable` vs `PageRequest` — relationship? 2) Why is `Specification` better than 5 method-name variants? 3) `Page<>` vs `Slice<>` — difference and when to use each? 4) How would you cap max page size? 5) What SQL runs for a `Page<>` — how many queries?
 **Answers:** 1) `Pageable` is the interface; `PageRequest.of(...)` builds an instance. Spring auto-binds from `?page=&size=&sort=`. 2) Composes N optional filters without exploding method count. 3) `Page` runs a count query for total; `Slice` just checks `hasNext` — cheaper if you don't need totals. 4) `spring.data.web.pageable.max-page-size: 100` + custom `PageableHandlerMethodArgumentResolverCustomizer`. 5) Two — one for content, one for count.
 
-### ☐ Day 5 — Week 13 consolidation: full user story
+### ✅ Day 5 — Week 13 consolidation: full user story
 
 **Code:** wire `POST /monitors` (creates monitor + schedule row + audit log — all transactional) → `GET /monitors/{id}` (returns monitor + last 10 probe results — no N+1) → `POST /monitors/{id}/incidents/{iid}/acknowledge` (moves state OPEN→ACK, audit-logged in a `REQUIRES_NEW`). Test with curl and assert audit rows exist even on rollback of the parent. Note in `notes/13-transactions/`.
 **Self-check:** Mixed on transactions, isolation, propagation.

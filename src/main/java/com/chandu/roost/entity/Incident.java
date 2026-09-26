@@ -81,4 +81,8 @@ public class Incident {
     public void setResolvedAt(Instant now) {
         this.resolvedAt = now;
     }
+
+    public void setAcknowledgedAt(Instant now) {
+        this.acknowledgedAt = now;
+    }
 }

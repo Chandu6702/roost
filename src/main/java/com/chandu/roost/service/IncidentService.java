@@ -44,4 +44,26 @@ public class IncidentService {
         // 5. Force outer transaction to fail
         throw new RuntimeException("Forced failure");
     }
+
+    @Transactional
+    public void acknowledge(Long incidentId) {
+        Incident incident = incidentRepository.findById(incidentId)
+                .orElseThrow(() -> new RuntimeException("Incident not found"));
+
+        if (incident.getStatus() != IncidentStatus.OPEN) {
+            throw new IllegalStateException(
+                    "Only OPEN incidents can be acknowledged"
+            );
+        }
+
+        incident.setStatus(IncidentStatus.ACK);
+        incident.setAcknowledgedAt(Instant.now());
+
+        incidentRepository.save(incident);
+
+        auditService.logStateChange(
+                incident,
+                "INCIDENT_ACKNOWLEDGED"
+        );
+    }
 }

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,9 +40,11 @@ class IncidentServiceTest {
     void resolve_rollsBackIncidentButAuditSurvives() {
 
         // Arrange
-        Workspace workspace = workspaceRepository.save(
-                new Workspace("Test Workspace", "test-workspace")
+        Workspace workspace = new Workspace(
+                "Test Workspace",
+                "incident-test-" + UUID.randomUUID()
         );
+        workspace = workspaceRepository.save(workspace);
 
         Monitor monitor = monitorRepository.save(
                 new Monitor(
@@ -66,10 +69,18 @@ class IncidentServiceTest {
 
         Long incidentId = incident.getId();
 
+        long auditCountBefore = auditLogRepository.count();
+
         // Act
         assertThrows(
                 RuntimeException.class,
                 () -> incidentService.resolve(incidentId)
+        );
+
+        // Assert: REQUIRES_NEW audit transaction survived
+        assertEquals(
+                auditCountBefore + 1,
+                auditLogRepository.count()
         );
 
         // Assert: outer transaction rolled back
@@ -78,8 +89,5 @@ class IncidentServiceTest {
 
         assertEquals(IncidentStatus.OPEN, result.getStatus());
         assertNull(result.getResolvedAt());
-
-        // Assert: REQUIRES_NEW transaction survived
-        assertEquals(1, auditLogRepository.count());
     }
 }

@@ -28,17 +28,20 @@ public class MonitorService {
     private final WorkspaceRepository workspaceRepository;
     private final ProbeResultRepository probeResultRepository;
     private final ProbeScheduleRepository probeScheduleRepository;
+    private final AuditService auditService;
 
     public MonitorService(
             MonitorRepository monitorRepository,
             WorkspaceRepository workspaceRepository,
             ProbeResultRepository probeResultRepository,
-            ProbeScheduleRepository probeScheduleRepository) {
+            ProbeScheduleRepository probeScheduleRepository,
+            AuditService auditService) {
 
         this.monitorRepository = monitorRepository;
         this.workspaceRepository = workspaceRepository;
         this.probeResultRepository = probeResultRepository;
         this.probeScheduleRepository = probeScheduleRepository;
+        this.auditService = auditService;
     }
 
     public long getTotalMonitors() {
@@ -81,6 +84,11 @@ public class MonitorService {
         );
 
         probeScheduleRepository.save(schedule);
+
+        auditService.logMonitorEvent(
+                savedMonitor,
+                "MONITOR_CREATED"
+        );
 
         return savedMonitor;
     }
