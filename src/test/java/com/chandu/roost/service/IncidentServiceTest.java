@@ -1,5 +1,6 @@
 package com.chandu.roost.service;
 
+import com.chandu.roost.entity.AuditLog;
 import com.chandu.roost.entity.Incident;
 import com.chandu.roost.entity.IncidentStatus;
 import com.chandu.roost.entity.Monitor;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,6 +46,7 @@ class IncidentServiceTest {
                 "Test Workspace",
                 "incident-test-" + UUID.randomUUID()
         );
+
         workspace = workspaceRepository.save(workspace);
 
         Monitor monitor = monitorRepository.save(
@@ -69,25 +72,147 @@ class IncidentServiceTest {
 
         Long incidentId = incident.getId();
 
-        long auditCountBefore = auditLogRepository.count();
+        // Move OPEN → ACK so RESOLVED is a valid next state.
+        incidentService.acknowledge(incidentId);
 
-        // Act
+        // Act:
+        // resolve() intentionally throws after creating the
+        // INCIDENT_RESOLVED audit in a REQUIRES_NEW transaction.
         assertThrows(
                 RuntimeException.class,
                 () -> incidentService.resolve(incidentId)
         );
 
-        // Assert: REQUIRES_NEW audit transaction survived
+        // Assert:
+        // The REQUIRES_NEW audit transaction survives.
+        List<AuditLog> auditLogs =
+                auditLogRepository.findByIncidentId(incidentId);
+
         assertEquals(
-                auditCountBefore + 1,
-                auditLogRepository.count()
+                1,
+                auditLogs.stream()
+                        .filter(audit ->
+                                "INCIDENT_RESOLVED".equals(audit.getAction()))
+                        .count()
         );
 
-        // Assert: outer transaction rolled back
+        // Assert:
+        // The outer resolve transaction rolled back.
+        // The incident should remain ACK, because OPEN → ACK
+        // happened before the failed RESOLVE transaction.
         Incident result = incidentRepository.findById(incidentId)
                 .orElseThrow();
 
-        assertEquals(IncidentStatus.OPEN, result.getStatus());
+        assertEquals(IncidentStatus.ACK, result.getStatus());
         assertNull(result.getResolvedAt());
+    }
+
+    @Test
+    void open_createsOpenIncident() {
+
+        Workspace workspace = new Workspace(
+                "Open Test Workspace",
+                "open-test-" + UUID.randomUUID()
+        );
+
+        workspace = workspaceRepository.save(workspace);
+
+        Monitor monitor = monitorRepository.save(
+                new Monitor(
+                        workspace,
+                        "Open Test Monitor",
+                        "https://example.com",
+                        MonitorType.HTTP,
+                        60,
+                        5000,
+                        Instant.now()
+                )
+        );
+
+        Incident incident = incidentService.open(
+                monitor.getId(),
+                "Monitor is DOWN"
+        );
+
+        assertNotNull(incident.getId());
+
+        assertEquals(
+                IncidentStatus.OPEN,
+                incident.getStatus()
+        );
+
+        assertNotNull(incident.getOpenedAt());
+
+        assertEquals(
+                "Monitor is DOWN",
+                incident.getSummary()
+        );
+
+        assertEquals(
+                monitor.getId(),
+                incident.getMonitor().getId()
+        );
+    }
+
+    @Test
+    void incident_can_completeFullLifecycle() {
+
+        Workspace workspace = new Workspace(
+                "Lifecycle Test Workspace",
+                "lifecycle-test-" + UUID.randomUUID()
+        );
+
+        workspace = workspaceRepository.save(workspace);
+
+        Monitor monitor = monitorRepository.save(
+                new Monitor(
+                        workspace,
+                        "Lifecycle Test Monitor",
+                        "https://example.com",
+                        MonitorType.HTTP,
+                        60,
+                        5000,
+                        Instant.now()
+                )
+        );
+
+        Incident incident = incidentService.open(
+                monitor.getId(),
+                "Monitor is DOWN"
+        );
+
+        assertEquals(
+                IncidentStatus.OPEN,
+                incident.getStatus()
+        );
+
+        assertNotNull(incident.getOpenedAt());
+
+        // OPEN → ACK
+        incidentService.acknowledge(incident.getId());
+
+        Incident acknowledged =
+                incidentRepository.findById(incident.getId())
+                        .orElseThrow();
+
+        assertEquals(
+                IncidentStatus.ACK,
+                acknowledged.getStatus()
+        );
+
+        assertNotNull(
+                acknowledged.getAcknowledgedAt()
+        );
+
+        /*
+         * resolve() currently contains the intentional forced
+         * failure used by the REQUIRES_NEW transaction test.
+         *
+         * Therefore we do not call incidentService.resolve()
+         * here.
+         *
+         * The pure IncidentStateMachineTest verifies the complete
+         * ACK → RESOLVED domain transition.
+         */
     }
 }

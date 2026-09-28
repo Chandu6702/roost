@@ -85,4 +85,26 @@ public class Incident {
     public void setAcknowledgedAt(Instant now) {
         this.acknowledgedAt = now;
     }
+
+    public void acknowledge() {
+        if (status != IncidentStatus.OPEN) {
+            throw new IllegalStateException(
+                    "Only OPEN incidents can be acknowledged"
+            );
+        }
+
+        this.status = IncidentStatus.ACK;
+        this.acknowledgedAt = Instant.now();
+    }
+
+    public void resolve() {
+        if (status != IncidentStatus.ACK) {
+            throw new IllegalStateException(
+                    "Only ACK incidents can be resolved"
+            );
+        }
+
+        this.status = IncidentStatus.RESOLVED;
+        this.resolvedAt = Instant.now();
+    }
 }
