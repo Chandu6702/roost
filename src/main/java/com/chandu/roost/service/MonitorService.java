@@ -1,14 +1,11 @@
 package com.chandu.roost.service;
 
 import com.chandu.roost.dto.MonitorRequest;
-import com.chandu.roost.entity.Monitor;
-import com.chandu.roost.entity.MonitorType;
-import com.chandu.roost.entity.ProbeSchedule;
+import com.chandu.roost.entity.*;
 import com.chandu.roost.error.MonitorNotFoundException;
 import com.chandu.roost.repository.MonitorRepository;
 import com.chandu.roost.repository.ProbeResultRepository;
 import com.chandu.roost.dto.ProbeResultResponse;
-import com.chandu.roost.entity.Workspace;
 import com.chandu.roost.repository.ProbeScheduleRepository;
 import com.chandu.roost.repository.WorkspaceRepository;
 import com.chandu.roost.specification.MonitorSpecification;
@@ -159,5 +156,17 @@ public class MonitorService {
                         probeResult.getLatencyMs(),
                         probeResult.getErrorMessage()
                 ));
+    }
+
+    public double calculateUptimePercent(List<ProbeResult> probeResults) {
+        if (probeResults.isEmpty()) {
+            return 0.0;
+        }
+
+        long upCount = probeResults.stream()
+                .filter(probeResult -> "UP".equals(probeResult.getStatus()))
+                .count();
+
+        return (upCount * 100.0) / probeResults.size();
     }
 }

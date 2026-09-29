@@ -251,7 +251,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 
 **Goal by end of week:** critical Roost paths covered — 5+ unit tests on `MonitorService`, 1 `@WebMvcTest`, 1 `@SpringBootTest` + Testcontainers integration test proving `POST /monitors` → GET round-trips through a real Postgres.
 
-### ☐ Day 1 — JUnit 5 fundamentals
+### ✅ Day 1 — JUnit 5 fundamentals
 
 **Resource:** Baeldung "A Guide to JUnit 5" + "Parameterized Tests JUnit 5".
 **Code:** pick `MonitorService.calculateUptimePercent(List<ProbeResult>)` or write it. Write 5+ tests: happy path (10 UP results = 100%), all DOWN = 0%, mixed = correct %, empty list edge (return 0 or throw — decide), one `@ParameterizedTest` with `@CsvSource` covering 4 cases.
