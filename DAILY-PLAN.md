@@ -238,7 +238,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Code:** wire `POST /monitors` (creates monitor + schedule row + audit log — all transactional) → `GET /monitors/{id}` (returns monitor + last 10 probe results — no N+1) → `POST /monitors/{id}/incidents/{iid}/acknowledge` (moves state OPEN→ACK, audit-logged in a `REQUIRES_NEW`). Test with curl and assert audit rows exist even on rollback of the parent. Note in `notes/13-transactions/`.
 **Self-check:** Mixed on transactions, isolation, propagation.
 
-### ☐ Monday W13 — deep-work + review
+### ✅ Monday W13 — deep-work + review
 
 **Morning (~2.5 hrs):** implement `IncidentService.open()` — called (mocked for now) when a probe result is `DOWN`. Full state machine: OPEN → ACKNOWLEDGED → RESOLVED. Guard state transitions with checks inside the entity (rich domain).
 **Evening (~1.5 hrs):** recall + `interview-qa/week-13-transactions.md` (5 propagation + 3 isolation Qs — top interview topics).
