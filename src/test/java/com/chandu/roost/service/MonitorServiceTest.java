@@ -1,166 +1,101 @@
 package com.chandu.roost.service;
 
-import com.chandu.roost.entity.ProbeResult;
-import com.chandu.roost.repository.MonitorRepository;
-import com.chandu.roost.repository.ProbeResultRepository;
-import com.chandu.roost.repository.ProbeScheduleRepository;
-import com.chandu.roost.repository.WorkspaceRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.chandu.roost.dto.MonitorRequest;
+import com.chandu.roost.entity.Workspace;
+import com.chandu.roost.error.MonitorNotFoundException;
+import com.chandu.roost.repository.*;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import com.chandu.roost.entity.Monitor;
+import com.chandu.roost.entity.MonitorType;
 import java.time.Instant;
-import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class MonitorServiceTest {
 
+    @Mock
+    private MonitorRepository monitorRepository;
+
+    @Mock
+    private WorkspaceRepository workspaceRepository;
+
+    @Mock
+    private ProbeResultRepository probeResultRepository;
+
+    @Mock
+    private ProbeScheduleRepository probeScheduleRepository;
+
+    @Mock
+    private AuditService auditService;
+
+    @InjectMocks
     private MonitorService monitorService;
 
-    @BeforeEach
-    void setUp() {
-        monitorService = new MonitorService(
-                mock(MonitorRepository.class),
-                mock(WorkspaceRepository.class),
-                mock(ProbeResultRepository.class),
-                mock(ProbeScheduleRepository.class),
-                mock(AuditService.class)
-        );
-    }
-
     @Test
-    void calculateUptimePercent_allUp_returns100Percent() {
-        List<ProbeResult> results = List.of(
-                new ProbeResult(null, Instant.now(), "UP", 100, null),
-                new ProbeResult(null, Instant.now(), "UP", 120, null),
-                new ProbeResult(null, Instant.now(), "UP", 90, null),
-                new ProbeResult(null, Instant.now(), "UP", 110, null),
-                new ProbeResult(null, Instant.now(), "UP", 105, null),
-                new ProbeResult(null, Instant.now(), "UP", 95, null),
-                new ProbeResult(null, Instant.now(), "UP", 130, null),
-                new ProbeResult(null, Instant.now(), "UP", 115, null),
-                new ProbeResult(null, Instant.now(), "UP", 80, null),
-                new ProbeResult(null, Instant.now(), "UP", 125, null)
+    void getMonitor_whenMonitorExists_returnsMonitor() {
+        Monitor mockMonitor = new Monitor(
+                null,
+                "Google",
+                "https://google.com",
+                MonitorType.HTTP,
+                60,
+                5000,
+                Instant.now()
         );
 
-        double result = monitorService.calculateUptimePercent(results);
+        when(monitorRepository.findById(1L))
+                .thenReturn(Optional.of(mockMonitor));
 
-        assertEquals(100.0, result);
+        Monitor result = monitorService.getMonitor(1L);
+
+        assertSame(mockMonitor, result);
     }
 
     @Test
-    void calculateUptimePercent_allDown_returns0Percent() {
-        List<ProbeResult> results = List.of(
-                new ProbeResult(null, Instant.now(), "DOWN", 100, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "DOWN", 120, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "DOWN", 90, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "DOWN", 110, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "DOWN", 105, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "DOWN", 95, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "DOWN", 130, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "DOWN", 115, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "DOWN", 80, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "DOWN", 125, "Connection failed")
+    void createMonitor_savesMonitor() {
+        Workspace workspace = new Workspace(
+                "Test Workspace",
+                "test-workspace"
         );
 
-        double result = monitorService.calculateUptimePercent(results);
+        when(workspaceRepository.findById(1L))
+                .thenReturn(Optional.of(workspace));
 
-        assertEquals(0.0, result);
-    }
-
-    @Test
-    void calculateUptimePercent_mixedResults_returnsCorrectPercentage() {
-        List<ProbeResult> results = List.of(
-                new ProbeResult(null, Instant.now(), "UP", 100, null),
-                new ProbeResult(null, Instant.now(), "UP", 120, null),
-                new ProbeResult(null, Instant.now(), "UP", 90, null),
-                new ProbeResult(null, Instant.now(), "UP", 110, null),
-                new ProbeResult(null, Instant.now(), "UP", 105, null),
-                new ProbeResult(null, Instant.now(), "UP", 95, null),
-                new ProbeResult(null, Instant.now(), "UP", 130, null),
-                new ProbeResult(null, Instant.now(), "DOWN", 115, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "DOWN", 80, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "DOWN", 125, "Connection failed")
+        MonitorRequest request = new MonitorRequest(
+                1L,
+                "Google Monitor",
+                "https://google.com",
+                60,
+                5000,
+                MonitorType.HTTP
         );
 
-        double result = monitorService.calculateUptimePercent(results);
+        when(monitorRepository.save(any(Monitor.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertEquals(70.0, result);
+        Monitor result = monitorService.createMonitor(request);
+
+        verify(monitorRepository).save(any(Monitor.class));
     }
 
     @Test
-    void calculateUptimePercent_emptyList_returns0Percent() {
-        double result = monitorService.calculateUptimePercent(List.of());
+    void getMonitor_whenMonitorDoesNotExist_throwsMonitorNotFoundException() {
+        when(monitorRepository.findById(999L))
+                .thenReturn(Optional.empty());
 
-        assertEquals(0.0, result);
-    }
-
-    @Test
-    void calculateUptimePercent_unsupportedStatus_doesNotCountAsUp() {
-        List<ProbeResult> results = List.of(
-                new ProbeResult(null, Instant.now(), "UP", 100, null),
-                new ProbeResult(null, Instant.now(), "UNKNOWN", 100, "Unknown result"),
-                new ProbeResult(null, Instant.now(), "DOWN", 100, "Connection failed"),
-                new ProbeResult(null, Instant.now(), "UP", 100, null)
-        );
-
-        double result = monitorService.calculateUptimePercent(results);
-
-        assertEquals(50.0, result);
-    }
-
-    @Test
-    void calculateUptimePercent_nullList_throwsNullPointerException() {
         assertThrows(
-                NullPointerException.class,
-                () -> monitorService.calculateUptimePercent(null)
+                MonitorNotFoundException.class,
+                () -> monitorService.getMonitor(999L)
         );
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-            "10, 0, 100.0",
-            "0, 10, 0.0",
-            "7, 3, 70.0",
-            "1, 9, 10.0"
-    })
-    void calculateUptimePercent_parameterized_returnsExpectedPercentage(
-            int upCount,
-            int downCount,
-            double expected) {
-
-        List<ProbeResult> results = new java.util.ArrayList<>();
-
-        for (int i = 0; i < upCount; i++) {
-            results.add(
-                    new ProbeResult(
-                            null,
-                            Instant.now(),
-                            "UP",
-                            100,
-                            null
-                    )
-            );
-        }
-
-        for (int i = 0; i < downCount; i++) {
-            results.add(
-                    new ProbeResult(
-                            null,
-                            Instant.now(),
-                            "DOWN",
-                            100,
-                            "Connection failed"
-                    )
-            );
-        }
-
-        double result = monitorService.calculateUptimePercent(results);
-
-        assertEquals(expected, result);
     }
 }

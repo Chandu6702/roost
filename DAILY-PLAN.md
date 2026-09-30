@@ -258,7 +258,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** 1) `@BeforeEach` vs `@BeforeAll` — call order? 2) `assertThrows` — what does it return? 3) When to prefer AssertJ over JUnit's `assertEquals`? 4) `@Nested` — why use it? 5) How do you assert on exception messages?
 **Answers:** 1) `@BeforeAll` (static) runs once per class before any tests. `@BeforeEach` runs before every test. 2) The thrown exception — useful for asserting message or cause. 3) AssertJ has fluent, chained, very readable assertions (`assertThat(list).hasSize(3).containsExactly(a, b, c)`); much better error messages. 4) Groups related tests, shows nesting in test reports, allows scoped `@BeforeEach`. 5) `assertThat(assertThrows(...)).hasMessage("...")` (AssertJ) or `assertEquals("...", ex.getMessage())`.
 
-### ☐ Day 2 — Mockito for service unit tests
+### ✅ Day 2 — Mockito for service unit tests
 
 **Resource:** Baeldung "Mockito Series" (basics).
 **Code:** `MonitorServiceTest` with `@ExtendWith(MockitoExtension.class)` — `@Mock MonitorRepository repo`; `@InjectMocks MonitorService service`. Test `getMonitor(1L)`: `when(repo.findById(1L)).thenReturn(Optional.of(mockMonitor))`; assert returned. Test `save`: `verify(repo).save(any(Monitor.class))`. One test where `repo.findById` returns empty — assert `MonitorNotFoundException` thrown.
