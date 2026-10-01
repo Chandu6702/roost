@@ -265,7 +265,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** 1) `@Mock` vs `@Spy`? 2) `when().thenReturn()` vs `doReturn().when()` — when different? 3) `verify(mock, times(2))` — what if you don't specify? 4) `ArgumentCaptor` — when do you use it? 5) Why NOT mock the class under test's own methods?
 **Answers:** 1) `@Mock` = fully fake, no real behavior. `@Spy` = wraps a real instance, stubs override only what you set. 2) `when.thenReturn` invokes the method to record — problematic with void methods or when you want to stub without executing. `doReturn.when` doesn't invoke — use for void, throwing methods, or spies. 3) Default is `times(1)`. 4) When you need to assert _what_ was passed to a mocked method (the argument was built inside the service, you can't easily reconstruct it in the test). 5) Because you're then testing your test, not your code.
 
-### ☐ Day 3 — `@WebMvcTest` controller slice tests
+### ✅ Day 3 — `@WebMvcTest` controller slice tests
 
 **Resource:** Baeldung "Testing Controllers with `@WebMvcTest`".
 **Code:** `MonitorControllerTest` annotated `@WebMvcTest(MonitorController.class)`. Inject `MockMvc`. `@MockitoBean` (SB4 replacement for `@MockBean`) the service. Test: `GET /monitors/1` returns 200 + expected JSON body (`jsonPath("$.name").value("Prod API")`); `GET /monitors/999` returns 404; `POST /monitors` with invalid body returns 400 + field errors.
