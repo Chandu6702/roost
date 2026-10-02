@@ -279,11 +279,11 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** 1) Why real DB in tests (not H2)? 2) `@Container` static vs instance — difference? 3) What is `@DynamicPropertySource`? 4) Test lifecycle: DB migrated per test class or per test method? 5) CI cost of Testcontainers?
 **Answers:** 1) Prod uses Postgres. H2 lies — different SQL dialect, no JSONB, no window functions, wrong casing rules. Bugs found in prod only. 2) Static = one container for the class (fast, tests share state — clean up in `@BeforeEach`). Instance = one per test (isolated, slow). 3) Registers property values dynamically after container starts — used to inject the container's random port into `spring.datasource.url`. 4) Class — Flyway migrates once; you clean rows per test. 5) Docker required; slower than in-memory (~15 sec startup); worth it — real Postgres in CI catches real bugs.
 
-### ☐ Day 5 — Week 14 consolidation + coverage sanity
+### ✅ Day 5 — Week 14 consolidation + coverage sanity
 
 **Code:** write 1 controller slice + 2 service unit + 1 integration test for the core write flow (`POST /monitors`). Aim for meaningful coverage of critical paths, not %. Note in `notes/14-testing/`.
 
-### ☐ Monday W14 — deep-work + review
+### ✅ Monday W14 — deep-work + review
 
 **Morning:** write the concurrent-probe integration test — 20 threads call `POST /probe-results` for the same monitor, assert no duplicate audit rows, no lost updates.
 **Evening:** recall + `interview-qa/week-14-testing.md`.

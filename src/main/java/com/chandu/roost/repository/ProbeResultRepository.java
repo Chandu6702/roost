@@ -8,4 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ProbeResultRepository extends JpaRepository<ProbeResult, Long> {
 
     Page<ProbeResult> findByMonitorId(Long monitorId, Pageable pageable);
+
+    long countByMonitorId(Long monitorId);
 }
