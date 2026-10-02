@@ -272,7 +272,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** 1) What does `@WebMvcTest` load vs `@SpringBootTest`? 2) Why is it faster? 3) `@MockitoBean` (SB4) vs `@MockBean` (deprecated)? 4) `MockMvc` vs `WebTestClient`? 5) Why can't you test transactions with `@WebMvcTest`?
 **Answers:** 1) `@WebMvcTest` = MVC infra only (controllers, `@ControllerAdvice`, filters, converters). No `@Service`, no `@Repository`, no DB. `@SpringBootTest` = whole app context. 2) No DB, no service layer wiring, boots in ~2 sec. 3) `@MockitoBean` is Spring 6+/SB3+ replacement; `@MockBean` is deprecated in newer versions. Same idea — puts a Mockito mock into the app context. 4) `MockMvc` = synchronous, servlet-based, fast, no real HTTP. `WebTestClient` = reactive style, works for MVC and WebFlux. 5) Because no DB or tx manager is loaded — for tx behavior use integration tests.
 
-### ☐ Day 4 — `@SpringBootTest` + Testcontainers (real Postgres)
+### ✅ Day 4 — `@SpringBootTest` + Testcontainers (real Postgres)
 
 **Resource:** Baeldung "Testing with `@SpringBootTest`" + "Testcontainers with Spring Boot".
 **Code:** add deps `org.testcontainers:junit-jupiter` + `org.testcontainers:postgresql`. Write `MonitorPersistenceIntegrationTest` — `@SpringBootTest(webEnvironment = RANDOM_PORT)` + `@Container` static `PostgreSQLContainer<>("postgres:17")` + `@DynamicPropertySource` to override `spring.datasource.url`. Use `TestRestTemplate` to `POST /workspaces` then `POST /monitors` then `GET /monitors/{id}` — assert round-trip.
