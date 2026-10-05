@@ -294,7 +294,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 
 **Goal by end of week:** JWT auth + role-based access + provable tenant isolation (workspace A cannot read workspace B's monitors, enforced by Hibernate `@Filter` + integration test proving it).
 
-### ☐ Day 1 — Spring Security basics + `SecurityFilterChain`
+### ✅ Day 1 — Spring Security basics + `SecurityFilterChain`
 
 **Resource:** Baeldung "Spring Security Architecture".
 **Code:** boot the app (Security is already on classpath) — observe default login. Write `SecurityConfig` with `@Bean SecurityFilterChain` — permit `/health/**`, `/swagger-ui/**`, `/v3/api-docs/**`, everything else `authenticated()`. Disable CSRF (JSON API). Set `SessionCreationPolicy.STATELESS`.
