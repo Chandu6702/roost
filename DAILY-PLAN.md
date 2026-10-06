@@ -301,7 +301,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** 1) What is the filter chain? 2) Order of filters? 3) Why STATELESS for a JWT API? 4) Why disable CSRF for a JSON API? 5) `hasRole("ADMIN")` vs `hasAuthority("ROLE_ADMIN")`?
 **Answers:** 1) Ordered chain of `Filter`s Spring Security wires into servlet chain. Auth, authz, session mgmt, exception handling. 2) Configurable; the first that responds handles the request. 3) No `HttpSession`, no cookies, every request self-authenticates via JWT — scales horizontally, no session store. 4) CSRF protects cookie-based auth (browser auto-sends cookies). JWT is sent explicitly in `Authorization` header — no auto-send, no CSRF risk. 5) `hasRole` prepends `ROLE_` automatically. Same thing.
 
-### ☐ Day 2 — Users + password hashing + register/login
+### ✅ Day 2 — Users + password hashing + register/login
 
 **Resource:** Baeldung "Registration with Spring Security" + "BCryptPasswordEncoder".
 **Code:** `V7__users.sql` (id, email unique, password_hash, role); `User` entity; `UserRepository`; `UserDetailsService` implementation; `@Bean PasswordEncoder bcrypt`. `AuthController` with `POST /auth/register` (hash + store) and `POST /auth/login` (validate via `AuthenticationManager`, return 200 — JWT lands tomorrow).
