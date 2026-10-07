@@ -308,7 +308,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** 1) Why hash passwords, why bcrypt specifically? 2) What's a salt and how does bcrypt handle it? 3) Login flow: what does `AuthenticationManager` do? 4) What happens if you store a hashed password as `VARCHAR(60)`? 5) Rate-limit the login endpoint — where would you do it?
 **Answers:** 1) Storing plain = breach = credential leak. Bcrypt = slow, adaptive cost factor (harder as CPUs get faster), built-in salt. 2) Random per-user prefix to prevent rainbow tables. Bcrypt embeds it in the hash string. 3) Delegates to `AuthenticationProvider`s (`DaoAuthenticationProvider` uses `UserDetailsService` + `PasswordEncoder`) — returns an authenticated `Authentication` or throws. 4) Bcrypt output is exactly 60 chars — VARCHAR(60) is intentional. 5) Filter before Spring Security's chain, per-IP via Redis-backed bucket (bucket4j). W17 topic.
 
-### ☐ Day 3 — JWT: generate + validate
+### ✅ Day 3 — JWT: generate + validate
 
 **Resource:** Baeldung "Spring Security OAuth2 Resource Server" (JWT section) + jwt.io "Introduction".
 **Code:** add `spring-boot-starter-oauth2-resource-server`. Configure HS256 with `spring.security.oauth2.resourceserver.jwt.secret: ${JWT_SECRET}`. Write `JwtService.issueToken(User user)` — subject = email, claim `roles`, claim `workspaceId`, expiration 15 min. Return the JWT from `/auth/login`. Decode at jwt.io — identify header, payload, signature.

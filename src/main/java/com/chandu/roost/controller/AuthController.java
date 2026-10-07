@@ -1,13 +1,16 @@
 package com.chandu.roost.controller;
 
 import com.chandu.roost.dto.LoginRequest;
+import com.chandu.roost.dto.LoginResponse;
 import com.chandu.roost.dto.RegisterRequest;
 import com.chandu.roost.entity.User;
 import com.chandu.roost.repository.UserRepository;
+import com.chandu.roost.security.JwtService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,15 +21,18 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     public AuthController(
             UserRepository userRepository,
             PasswordEncoder passwordEncoder,
-            AuthenticationManager authenticationManager) {
+            AuthenticationManager authenticationManager,
+            JwtService jwtService) {
 
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/register")
@@ -45,7 +51,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Void> login(
+    public ResponseEntity<LoginResponse> login(
             @Valid @RequestBody LoginRequest request) {
 
         authenticationManager.authenticate(
@@ -55,6 +61,14 @@ public class AuthController {
                 )
         );
 
-        return ResponseEntity.ok().build();
+        User user = userRepository.findByEmail(request.email())
+                .orElseThrow(() ->
+                        new UsernameNotFoundException(
+                                "User not found: " + request.email()
+                        ));
+
+        String token = jwtService.issueToken(user);
+
+        return ResponseEntity.ok(new LoginResponse(token));
     }
 }

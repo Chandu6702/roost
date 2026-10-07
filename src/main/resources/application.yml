@@ -23,6 +23,9 @@ spring:
     level:
       org.hibernate.SQL: DEBUG
 
+  config:
+    import: optional:classpath:application-local.yml
+
 server:
   port: 8080
 
