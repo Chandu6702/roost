@@ -315,7 +315,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** 1) 3 parts of a JWT? 2) HS256 vs RS256 — when do you pick each? 3) Is a JWT encrypted? 4) Can you revoke a JWT? 5) Why 15-min expiration and not 24 hours?
 **Answers:** 1) Header (algo, type), payload (claims), signature (HMAC of `base64(header).base64(payload)` with secret). 2) HS256 = symmetric secret (one server or shared secret across trusted services). RS256 = asymmetric (public key can validate, private key issues — used when many services need to verify without sharing secret). 3) No — base64-encoded, human-readable. Never put secrets in a JWT. Signed, not encrypted. 4) Not directly — stateless. Common patterns: short TTL + refresh tokens; or a blocklist of revoked jti's in Redis. 5) Blast radius. Stolen 15-min token = 15 min of damage. Combine with a refresh token stored server-side (rotated on use like EventPulse v2 did).
 
-### ☐ Day 4 — JWT validation filter + role-based authorization
+### ✅ Day 4 — JWT validation filter + role-based authorization
 
 **Resource:** Baeldung "Method Security with `@PreAuthorize`".
 **Code:** Spring's resource-server auto-configures a JWT validation filter — configure it in `SecurityConfig` via `.oauth2ResourceServer(oauth -> oauth.jwt())`. Add `@PreAuthorize("hasRole('OWNER')")` on `POST /workspaces/{id}/members`. Confirm 403 for a MEMBER token, 200 for an OWNER token. Test with real curl using tokens from `/auth/login`.

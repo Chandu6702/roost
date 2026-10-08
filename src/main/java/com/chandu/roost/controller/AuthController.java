@@ -8,6 +8,7 @@ import com.chandu.roost.repository.UserRepository;
 import com.chandu.roost.security.JwtService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,6 +34,12 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
+    }
+
+    @GetMapping("/admin-test")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> adminTest() {
+        return ResponseEntity.ok("ADMIN access granted");
     }
 
     @PostMapping("/register")
