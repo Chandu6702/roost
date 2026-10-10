@@ -1,18 +1,20 @@
+
 package com.chandu.roost.controller;
 
-import com.chandu.roost.entity.Monitor;
 import com.chandu.roost.dto.MonitorDetailResponse;
 import com.chandu.roost.dto.MonitorRequest;
 import com.chandu.roost.dto.MonitorResponse;
+import com.chandu.roost.dto.ProbeResultResponse;
+import com.chandu.roost.entity.Monitor;
 import com.chandu.roost.entity.MonitorType;
 import com.chandu.roost.service.MonitorService;
-import com.chandu.roost.dto.ProbeResultResponse;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,28 +33,29 @@ public class MonitorController {
     public ResponseEntity<Page<MonitorResponse>> getMonitors(
             Pageable pageable,
             @RequestParam(required = false) Long workspaceId,
-            @RequestParam(required = false) MonitorType type) {
-        Page<MonitorResponse> responses = monitorService.getMonitors(pageable, workspaceId, type)
-                .map(monitor -> new MonitorResponse(
-                        monitor.getId(),
-                        monitor.getWorkspace().getId(),
-                        monitor.getName(),
-                        monitor.getUrl(),
-                        monitor.getIntervalSeconds(),
-                        monitor.getTimeoutMillis(),
-                        monitor.getType(),
-                        monitor.getCreatedAt()
-                ));
+            @RequestParam(required = false) MonitorType type,
+            Authentication authentication) {
+
+        Page<MonitorResponse> responses =
+                monitorService.getMonitors(
+                        pageable,
+                        workspaceId,
+                        type,
+                        authentication.getName()
+                ).map(this::toResponse);
 
         return ResponseEntity.ok(responses);
     }
 
     @GetMapping("/workspace/{workspaceId}")
     public ResponseEntity<List<MonitorResponse>> getMonitorsByWorkspace(
-            @PathVariable Long workspaceId) {
+            @PathVariable Long workspaceId,
+            Authentication authentication) {
 
         List<MonitorResponse> responses =
-                monitorService.getMonitorsByWorkspace(workspaceId)
+                monitorService.getMonitorsByWorkspace(
+                                workspaceId,
+                                authentication.getName())
                         .stream()
                         .map(this::toResponse)
                         .toList();
@@ -63,10 +66,14 @@ public class MonitorController {
     @GetMapping("/workspace/{workspaceId}/search")
     public ResponseEntity<List<MonitorResponse>> searchMonitors(
             @PathVariable Long workspaceId,
-            @RequestParam String q) {
+            @RequestParam String q,
+            Authentication authentication) {
 
         List<MonitorResponse> responses =
-                monitorService.searchMonitors(workspaceId, q)
+                monitorService.searchMonitors(
+                                workspaceId,
+                                q,
+                                authentication.getName())
                         .stream()
                         .map(this::toResponse)
                         .toList();
@@ -75,7 +82,11 @@ public class MonitorController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MonitorDetailResponse> getMonitor(@PathVariable Long id, Pageable pageable) {
+    public ResponseEntity<MonitorDetailResponse> getMonitor(
+            @PathVariable Long id,
+            Pageable pageable,
+            Authentication authentication) {
+
         if (pageable.getSort().isUnsorted()) {
             pageable = PageRequest.of(
                     pageable.getPageNumber(),
@@ -83,10 +94,12 @@ public class MonitorController {
                     Sort.by(Sort.Direction.DESC, "probedAt")
             );
         }
-        Monitor monitor = monitorService.getMonitor(id);
+
+        String email = authentication.getName();
+        Monitor monitor = monitorService.getMonitor(id, email);
 
         Page<ProbeResultResponse> probeResults =
-                monitorService.getProbeResults(id, pageable);
+                monitorService.getProbeResults(id, pageable, email);
 
         MonitorDetailResponse response = new MonitorDetailResponse(
                 monitor.getId(),
@@ -105,30 +118,33 @@ public class MonitorController {
 
     @PostMapping
     public ResponseEntity<MonitorResponse> createMonitor(
-            @Valid @RequestBody MonitorRequest request) {
+            @Valid @RequestBody MonitorRequest request,
+            Authentication authentication) {
 
-        Monitor monitor = monitorService.createMonitor(request);
+        Monitor monitor = monitorService.createMonitor(
+                request, authentication.getName());
 
-        MonitorResponse response =  toResponse(monitor);
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(201).body(toResponse(monitor));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<MonitorResponse> updateMonitor(
             @PathVariable Long id,
-            @Valid @RequestBody MonitorRequest request) {
+            @Valid @RequestBody MonitorRequest request,
+            Authentication authentication) {
 
-        Monitor monitor = monitorService.updateMonitor(id, request);
+        Monitor monitor = monitorService.updateMonitor(
+                id, request, authentication.getName());
 
-        MonitorResponse response = toResponse(monitor);
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(toResponse(monitor));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteMonitor(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteMonitor(
+            @PathVariable Long id,
+            Authentication authentication) {
 
-        monitorService.deleteMonitor(id);
+        monitorService.deleteMonitor(id, authentication.getName());
 
         return ResponseEntity.noContent().build();
     }

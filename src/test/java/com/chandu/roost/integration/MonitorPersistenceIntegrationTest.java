@@ -1,10 +1,14 @@
+
 package com.chandu.roost.integration;
 
 import com.chandu.roost.dto.CreateWorkspaceRequest;
+import com.chandu.roost.dto.LoginRequest;
+import com.chandu.roost.dto.LoginResponse;
 import com.chandu.roost.dto.MonitorRequest;
 import com.chandu.roost.dto.MonitorResponse;
 import com.chandu.roost.dto.ProbeResultRequest;
 import com.chandu.roost.dto.ProbeResultResponse;
+import com.chandu.roost.dto.RegisterRequest;
 import com.chandu.roost.entity.MonitorType;
 import com.chandu.roost.entity.Workspace;
 import com.chandu.roost.repository.AuditLogRepository;
@@ -15,6 +19,9 @@ import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -25,6 +32,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -38,10 +46,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureTestRestTemplate
-public class MonitorPersistenceIntegrationTest {
+class MonitorPersistenceIntegrationTest {
+
+    private static final String PASSWORD = "IntegrationTestPassword123!";
 
     @Container
-    static PostgreSQLContainer<?> postgres =
+    static final PostgreSQLContainer<?> postgres =
             new PostgreSQLContainer<>("postgres:17");
 
     @LocalServerPort
@@ -65,244 +75,242 @@ public class MonitorPersistenceIntegrationTest {
 
     @Test
     void createWorkspace_returns201() {
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+        HttpHeaders headers = authenticate("workspace-" + uniqueId + "@example.com");
 
-        // 1. Create workspace
-        CreateWorkspaceRequest workspaceRequest =
-                new CreateWorkspaceRequest(
-                        "Integration Test Workspace",
-                        "integration-test"
-                );
-
-        ResponseEntity<Workspace> workspaceResponse =
-                restTemplate.postForEntity(
-                        "http://localhost:" + port + "/workspaces",
-                        workspaceRequest,
-                        Workspace.class
-                );
-
-        assertEquals(201, workspaceResponse.getStatusCode().value());
-        assertNotNull(workspaceResponse.getBody());
-        assertEquals(
+        Workspace workspace = createWorkspace(
+                headers,
                 "Integration Test Workspace",
-                workspaceResponse.getBody().getName()
+                "integration-" + uniqueId
         );
 
-        Long workspaceId = workspaceResponse.getBody().getId();
+        assertNotNull(workspace.getId());
+        assertEquals("Integration Test Workspace", workspace.getName());
 
-        assertNotNull(workspaceId);
-
-        // 2. Create monitor
-        MonitorRequest monitorRequest =
-                new MonitorRequest(
-                        workspaceId,
-                        "Google Monitor",
-                        "https://google.com",
-                        60,
-                        5000,
-                        MonitorType.HTTP
-                );
-
-        ResponseEntity<MonitorResponse> monitorResponse =
-                restTemplate.postForEntity(
-                        "http://localhost:" + port + "/monitors",
-                        monitorRequest,
-                        MonitorResponse.class
-                );
-
-        assertEquals(201, monitorResponse.getStatusCode().value());
-        assertNotNull(monitorResponse.getBody());
-        assertNotNull(monitorResponse.getBody().id());
-        assertEquals(
-                "Google Monitor",
-                monitorResponse.getBody().name()
+        MonitorResponse monitor = createMonitor(
+                headers,
+                workspace.getId(),
+                "Google Monitor"
         );
 
-        Long monitorId = monitorResponse.getBody().id();
+        assertNotNull(monitor.id());
+        assertEquals("Google Monitor", monitor.name());
 
-        // 3. Record one probe result
-        ProbeResultRequest probeRequest =
-                new ProbeResultRequest(
-                        Instant.now(),
-                        "UP",
-                        120,
-                        null
-                );
+        ProbeResultRequest probeRequest = new ProbeResultRequest(
+                Instant.now(),
+                "UP",
+                120,
+                null
+        );
 
         ResponseEntity<ProbeResultResponse> probeResponse =
-                restTemplate.postForEntity(
-                        "http://localhost:" + port
-                                + "/monitors/" + monitorId
-                                + "/probe-results",
-                        probeRequest,
+                restTemplate.exchange(
+                        url("/monitors/" + monitor.id() + "/probe-results"),
+                        HttpMethod.POST,
+                        new HttpEntity<>(probeRequest, headers),
                         ProbeResultResponse.class
                 );
 
         assertEquals(201, probeResponse.getStatusCode().value());
         assertNotNull(probeResponse.getBody());
         assertNotNull(probeResponse.getBody().id());
-        assertEquals(
-                "UP",
-                probeResponse.getBody().status()
-        );
-        assertEquals(
-                120,
-                probeResponse.getBody().latencyMs()
-        );
+        assertEquals("UP", probeResponse.getBody().status());
+        assertEquals(120, probeResponse.getBody().latencyMs());
 
-        // 4. Read the monitor back
-        ResponseEntity<String> getResponse =
-                restTemplate.getForEntity(
-                        "http://localhost:" + port
-                                + "/monitors/" + monitorId,
-                        String.class
-                );
+        ResponseEntity<String> getResponse = restTemplate.exchange(
+                url("/monitors/" + monitor.id()),
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                String.class
+        );
 
         assertEquals(200, getResponse.getStatusCode().value());
         assertNotNull(getResponse.getBody());
-
-        System.out.println(getResponse.getBody());
     }
 
     @Test
     void concurrentProbeWrites_persistAllResults() throws Exception {
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+        HttpHeaders headers = authenticate("concurrent-" + uniqueId + "@example.com");
 
-        // 1. Create a workspace
-        CreateWorkspaceRequest workspaceRequest =
-                new CreateWorkspaceRequest(
-                        "Concurrent Probe Workspace",
-                        "concurrent-probe-test"
-                );
+        Workspace workspace = createWorkspace(
+                headers,
+                "Concurrent Probe Workspace",
+                "concurrent-" + uniqueId
+        );
 
-        ResponseEntity<Workspace> workspaceResponse =
-                restTemplate.postForEntity(
-                        "http://localhost:" + port + "/workspaces",
-                        workspaceRequest,
-                        Workspace.class
-                );
+        MonitorResponse monitor = createMonitor(
+                headers,
+                workspace.getId(),
+                "Concurrent Probe Monitor"
+        );
 
-        assertEquals(201, workspaceResponse.getStatusCode().value());
-        assertNotNull(workspaceResponse.getBody());
-
-        Long workspaceId = workspaceResponse.getBody().getId();
-
-        // 2. Create a monitor
-        MonitorRequest monitorRequest =
-                new MonitorRequest(
-                        workspaceId,
-                        "Concurrent Probe Monitor",
-                        "https://google.com",
-                        60,
-                        5000,
-                        MonitorType.HTTP
-                );
-
-        ResponseEntity<MonitorResponse> monitorResponse =
-                restTemplate.postForEntity(
-                        "http://localhost:" + port + "/monitors",
-                        monitorRequest,
-                        MonitorResponse.class
-                );
-
-        assertEquals(201, monitorResponse.getStatusCode().value());
-        assertNotNull(monitorResponse.getBody());
-
-        Long monitorId = monitorResponse.getBody().id();
-
-        // 3. Prepare 20 concurrent requests
+        Long monitorId = monitor.id();
         int threadCount = 20;
 
-        ExecutorService executor =
-                Executors.newFixedThreadPool(threadCount);
-
-        CountDownLatch ready =
-                new CountDownLatch(threadCount);
-
-        CountDownLatch start =
-                new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch ready = new CountDownLatch(threadCount);
+        CountDownLatch start = new CountDownLatch(1);
 
         List<Future<ResponseEntity<ProbeResultResponse>>> futures =
                 new ArrayList<>();
 
-        for (int i = 0; i < threadCount; i++) {
+        try {
+            for (int i = 0; i < threadCount; i++) {
+                final int probeNumber = i;
 
-            final int probeNumber = i;
+                futures.add(executor.submit(() -> {
+                    ready.countDown();
 
-            Future<ResponseEntity<ProbeResultResponse>> future =
-                    executor.submit(() -> {
-
-                        ready.countDown();
-
-                        // Wait until all 20 threads are ready
-                        start.await();
-
-                        ProbeResultRequest probeRequest =
-                                new ProbeResultRequest(
-                                        Instant.now().plusMillis(probeNumber),
-                                        "UP",
-                                        100 + probeNumber,
-                                        null
-                                );
-
-                        return restTemplate.postForEntity(
-                                "http://localhost:" + port
-                                        + "/monitors/" + monitorId
-                                        + "/probe-results",
-                                probeRequest,
-                                ProbeResultResponse.class
+                    if (!start.await(10, TimeUnit.SECONDS)) {
+                        throw new IllegalStateException(
+                                "Timed out waiting to start probe request"
                         );
-                    });
+                    }
 
-            futures.add(future);
+                    ProbeResultRequest probeRequest = new ProbeResultRequest(
+                            Instant.now().plusMillis(probeNumber),
+                            "UP",
+                            100 + probeNumber,
+                            null
+                    );
+
+                    return restTemplate.exchange(
+                            url("/monitors/" + monitorId + "/probe-results"),
+                            HttpMethod.POST,
+                            new HttpEntity<>(probeRequest, headers),
+                            ProbeResultResponse.class
+                    );
+                }));
+            }
+
+            assertTrue(
+                    ready.await(10, TimeUnit.SECONDS),
+                    "Not all probe threads became ready"
+            );
+
+            start.countDown();
+
+            for (Future<ResponseEntity<ProbeResultResponse>> future : futures) {
+                ResponseEntity<ProbeResultResponse> response =
+                        future.get(30, TimeUnit.SECONDS);
+
+                assertEquals(201, response.getStatusCode().value());
+                assertNotNull(response.getBody());
+                assertNotNull(response.getBody().id());
+            }
+        } finally {
+            start.countDown();
+            executor.shutdownNow();
+
+            assertTrue(
+                    executor.awaitTermination(30, TimeUnit.SECONDS),
+                    "Probe executor did not terminate"
+            );
         }
-
-        // 4. Make sure all 20 threads are ready
-        assertTrue(
-                ready.await(10, TimeUnit.SECONDS),
-                "Not all probe threads became ready"
-        );
-
-        // 5. Release all 20 threads together
-        start.countDown();
-
-        // 6. Wait for all HTTP requests to complete
-        for (Future<ResponseEntity<ProbeResultResponse>> future : futures) {
-
-            ResponseEntity<ProbeResultResponse> response =
-                    future.get();
-
-            assertEquals(201, response.getStatusCode().value());
-            assertNotNull(response.getBody());
-            assertNotNull(response.getBody().id());
-        }
-
-        executor.shutdown();
-
-        assertTrue(
-                executor.awaitTermination(30, TimeUnit.SECONDS),
-                "Probe executor did not terminate"
-        );
-
-        // 7. Verify that all 20 probe results were persisted
-        long probeResultCount =
-                probeResultRepository.countByMonitorId(monitorId);
 
         assertEquals(
                 20,
-                probeResultCount,
+                probeResultRepository.countByMonitorId(monitorId),
                 "Expected exactly 20 probe results"
         );
 
-        // 8. Verify that every probe result produced an audit entry
-        long auditCount =
+        assertEquals(
+                20,
                 auditLogRepository.countByMonitorIdAndAction(
                         monitorId,
                         "PROBE_RESULT_RECORDED"
-                );
-
-        assertEquals(
-                20,
-                auditCount,
+                ),
                 "Expected exactly 20 probe-result audit entries"
         );
+    }
+
+    private HttpHeaders authenticate(String email) {
+        RegisterRequest registerRequest =
+                new RegisterRequest(email, PASSWORD);
+
+        ResponseEntity<Void> registerResponse =
+                restTemplate.postForEntity(
+                        url("/auth/register"),
+                        registerRequest,
+                        Void.class
+                );
+
+        assertTrue(
+                registerResponse.getStatusCode().is2xxSuccessful(),
+                "Registration failed for " + email
+        );
+
+        LoginRequest loginRequest = new LoginRequest(email, PASSWORD);
+
+        ResponseEntity<LoginResponse> loginResponse =
+                restTemplate.postForEntity(
+                        url("/auth/login"),
+                        loginRequest,
+                        LoginResponse.class
+                );
+
+        assertEquals(200, loginResponse.getStatusCode().value());
+        assertNotNull(loginResponse.getBody());
+        assertNotNull(loginResponse.getBody().token());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(loginResponse.getBody().token());
+
+        return headers;
+    }
+
+    private Workspace createWorkspace(
+            HttpHeaders headers,
+            String name,
+            String slug) {
+
+        CreateWorkspaceRequest request =
+                new CreateWorkspaceRequest(name, slug);
+
+        ResponseEntity<Workspace> response =
+                restTemplate.exchange(
+                        url("/workspaces"),
+                        HttpMethod.POST,
+                        new HttpEntity<>(request, headers),
+                        Workspace.class
+                );
+
+        assertEquals(201, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+
+        return response.getBody();
+    }
+
+    private MonitorResponse createMonitor(
+            HttpHeaders headers,
+            Long workspaceId,
+            String name) {
+
+        MonitorRequest request = new MonitorRequest(
+                workspaceId,
+                name,
+                "https://google.com",
+                60,
+                5000,
+                MonitorType.HTTP
+        );
+
+        ResponseEntity<MonitorResponse> response =
+                restTemplate.exchange(
+                        url("/monitors"),
+                        HttpMethod.POST,
+                        new HttpEntity<>(request, headers),
+                        MonitorResponse.class
+                );
+
+        assertEquals(201, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+
+        return response.getBody();
+    }
+
+    private String url(String path) {
+        return "http://localhost:" + port + path;
     }
 }

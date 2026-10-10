@@ -19,6 +19,10 @@ public class User {
     @Column(nullable = false, length = 30)
     private String role;
 
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "workspace_id", unique = true)
+    private Workspace workspace;
+
     protected User() {
     }
 
@@ -42,5 +46,13 @@ public class User {
 
     public String getRole() {
         return role;
+    }
+
+    public Workspace getWorkspace() {
+        return workspace;
+    }
+
+    public void setWorkspace(Workspace workspace) {
+        this.workspace = workspace;
     }
 }

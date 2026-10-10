@@ -1,3 +1,4 @@
+
 package com.chandu.roost.controller;
 
 import com.chandu.roost.entity.Monitor;
@@ -11,6 +12,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -28,6 +31,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(MonitorController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class MonitorControllerTest {
+
+    private static final String USER_EMAIL = "user@example.com";
 
     @Autowired
     private MockMvc mockMvc;
@@ -52,45 +57,58 @@ class MonitorControllerTest {
                 Instant.now()
         );
 
-        when(monitorService.getMonitor(1L))
+        when(monitorService.getMonitor(1L, USER_EMAIL))
                 .thenReturn(monitor);
 
         when(monitorService.getProbeResults(
                 eq(1L),
-                any(Pageable.class)
+                any(Pageable.class),
+                eq(USER_EMAIL)
         )).thenReturn(Page.empty());
 
-        mockMvc.perform(get("/monitors/1"))
+        mockMvc.perform(get("/monitors/1")
+                        .principal(authenticatedUser()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Prod API"));
     }
 
     @Test
     void getMonitor_whenMonitorDoesNotExist_returns404() throws Exception {
-        when(monitorService.getMonitor(999L))
+        when(monitorService.getMonitor(999L, USER_EMAIL))
                 .thenThrow(new MonitorNotFoundException(999L));
 
-        mockMvc.perform(get("/monitors/999"))
+        mockMvc.perform(get("/monitors/999")
+                        .principal(authenticatedUser()))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void createMonitor_whenRequestIsInvalid_returns400() throws Exception {
         String invalidRequest = """
-                {
-                    "workspaceId": null,
-                    "name": "",
-                    "url": "not-a-url",
-                    "interval_seconds": 10,
-                    "timeout_millis": 50,
-                    "type": null
-                }
-                """;
+        {
+            "workspaceId": null,
+            "name": "",
+            "url": "",
+            "intervalSeconds": 10,
+            "timeoutMillis": 50,
+            "type": null
+        }
+        """;
 
         mockMvc.perform(post("/monitors")
-                        .contentType("application/json")
+                        .principal(authenticatedUser())
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(invalidRequest))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().contentTypeCompatibleWith("application/problem+json"));
+                .andExpect(content().contentTypeCompatibleWith(
+                        "application/problem+json"
+                ));
+    }
+
+    private UsernamePasswordAuthenticationToken authenticatedUser() {
+        return new UsernamePasswordAuthenticationToken(
+                USER_EMAIL,
+                null
+        );
     }
 }

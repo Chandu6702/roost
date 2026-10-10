@@ -322,7 +322,7 @@ Re-EXPLAIN — you should see Index Scan instead of Seq Scan. Write `notes/12-da
 **Self-check:** 1) `@PreAuthorize` vs `@Secured` vs `hasRole()` in filter chain? 2) Where do you fetch `roles` from — the JWT payload or the DB? 3) SpEL in `@PreAuthorize` — one useful example? 4) What happens when the token is expired? 5) How do you customize the 401/403 response body?
 **Answers:** 1) `@PreAuthorize` = SpEL (flexible: `hasRole()`, `hasPermission()`, `#id == principal.id`). `@Secured` = simpler, roles only. Filter-chain rules = coarse URL patterns. Combine: filter chain for coarse gates, `@PreAuthorize` for method-level. 2) JWT payload — self-contained. If roles change server-side mid-token lifetime, they only take effect after next login. Trade-off vs DB check per request (slower). 3) `@PreAuthorize("#workspaceId == authentication.principal.workspaceId")` — object-level check. 4) `JwtException`; framework returns 401 automatically. 5) Custom `AuthenticationEntryPoint` bean.
 
-### ☐ Day 5 — **Multi-tenant isolation via Hibernate `@Filter`** (the interview-favorite topic)
+### ✅ Day 5 — **Multi-tenant isolation via Hibernate `@Filter`** (the interview-favorite topic)
 
 **Resource:** Baeldung "Multi-Tenancy with Hibernate" + Vlad Mihalcea "Hibernate `@Filter`".
 **Code:** add `workspace_id` column to `monitors`, `incidents`, `probe_results`. Extract `workspaceId` from the JWT into `TenantContext` (a `ThreadLocal<Long>`) via a filter/interceptor. On each entity, add:

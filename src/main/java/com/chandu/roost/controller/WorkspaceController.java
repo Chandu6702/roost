@@ -4,39 +4,56 @@ import com.chandu.roost.dto.CreateWorkspaceRequest;
 import com.chandu.roost.entity.Workspace;
 import com.chandu.roost.service.WorkspaceService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/workspaces")
 public class WorkspaceController {
+
     private final WorkspaceService service;
 
     public WorkspaceController(WorkspaceService workspaceService) {
         this.service = workspaceService;
     }
+
     @GetMapping("/slug/{slug}")
     public ResponseEntity<Workspace> getWorkspaceBySlug(
-            @PathVariable String slug) {
+            @PathVariable String slug,
+            Authentication authentication) {
 
         return ResponseEntity.ok(
-                service.getWorkspaceBySlug(slug)
-        );
+                service.getWorkspaceBySlugForUser(
+                        slug, authentication.getName()));
     }
+
     @PostMapping
     public ResponseEntity<Workspace> createWorkspace(
-            @RequestBody CreateWorkspaceRequest request) {
+            @RequestBody CreateWorkspaceRequest request,
+            Authentication authentication) {
 
-        Workspace workspace = service.createWorkspace(
+        Workspace workspace = service.createWorkspaceForUser(
                 request.name(),
-                request.slug()
-        );
+                request.slug(),
+                authentication.getName());
 
         return ResponseEntity.status(201).body(workspace);
     }
 
     @GetMapping("/with-monitors")
-    public ResponseEntity<String> getWorkspacesWithMonitors() {
-        service.getWorkspacesWithMonitors();
-        return ResponseEntity.ok("N+1 query executed. Check SQL logs.");
+    public ResponseEntity<String> getWorkspacesWithMonitors(
+            Authentication authentication) {
+
+        List<Workspace> workspaces =
+                service.getCurrentWorkspaceWithMonitors(
+                        authentication.getName());
+
+        workspaces.forEach(workspace ->
+                workspace.getMonitors().size());
+
+        return ResponseEntity.ok(
+                "Current workspace loaded. Check SQL logs.");
     }
 }

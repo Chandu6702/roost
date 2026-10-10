@@ -1,11 +1,26 @@
 package com.chandu.roost.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.Filter;
+import org.hibernate.annotations.FilterDef;
+import org.hibernate.annotations.ParamDef;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+
+@FilterDef(
+        name = "workspaceFilter",
+        parameters = @ParamDef(
+                name = "workspaceId",
+                type = Long.class
+        )
+)
+@Filter(
+        name = "workspaceFilter",
+        condition = "workspace_id = :workspaceId"
+)
 @Entity
 @Table(name = "monitors")
 public class Monitor {
