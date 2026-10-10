@@ -56,4 +56,14 @@ public class WorkspaceController {
         return ResponseEntity.ok(
                 "Current workspace loaded. Check SQL logs.");
     }
+
+    @GetMapping("/mine")
+    public ResponseEntity<List<Workspace>> getMyWorkspaces(
+            Authentication authentication) {
+
+        List<Workspace> workspaces =
+                service.getWorkspacesForUser(authentication.getName());
+
+        return ResponseEntity.ok(workspaces);
+    }
 }

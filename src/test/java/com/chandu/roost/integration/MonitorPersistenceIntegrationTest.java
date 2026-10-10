@@ -28,7 +28,12 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import com.chandu.roost.entity.Monitor;
+import jakarta.persistence.EntityManager;
+import org.hibernate.Session;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +70,9 @@ class MonitorPersistenceIntegrationTest {
 
     @Autowired
     private AuditLogRepository auditLogRepository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @DynamicPropertySource
     static void configureDatabase(DynamicPropertyRegistry registry) {
@@ -222,6 +230,71 @@ class MonitorPersistenceIntegrationTest {
                         "PROBE_RESULT_RECORDED"
                 ),
                 "Expected exactly 20 probe-result audit entries"
+        );
+    }
+
+
+    @Test
+    @Transactional
+    void workspaceFilter_onlyReturnsMonitorsForSelectedWorkspace() {
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+
+        // Create two independent users, workspaces, and monitors.
+        HttpHeaders headersA = authenticate("filter-a-" + uniqueId + "@example.com");
+        Workspace workspaceA = createWorkspace(
+                headersA, "Filter Workspace A", "filter-a-" + uniqueId
+        );
+        MonitorResponse monitorA = createMonitor(
+                headersA, workspaceA.getId(), "Filter Monitor A"
+        );
+
+        HttpHeaders headersB = authenticate("filter-b-" + uniqueId + "@example.com");
+        Workspace workspaceB = createWorkspace(
+                headersB, "Filter Workspace B", "filter-b-" + uniqueId
+        );
+        MonitorResponse monitorB = createMonitor(
+                headersB, workspaceB.getId(), "Filter Monitor B"
+        );
+
+        // Query through the same Hibernate session with the filter enabled.
+        entityManager.clear();
+
+        Session session = entityManager.unwrap(Session.class);
+        session.enableFilter("workspaceFilter")
+                .setParameter("workspaceId", workspaceA.getId());
+
+        List<Long> visibleMonitorIdsA = entityManager
+                .createQuery("select m from Monitor m", Monitor.class)
+                .getResultList()
+                .stream()
+                .map(Monitor::getId)
+                .sorted(Comparator.naturalOrder())
+                .toList();
+
+        assertEquals(
+                List.of(monitorA.id()),
+                visibleMonitorIdsA,
+                "Workspace A's filter should hide Workspace B's monitor"
+        );
+
+        // Change only the filter parameter and query again.
+        entityManager.clear();
+
+        session.getEnabledFilter("workspaceFilter")
+                .setParameter("workspaceId", workspaceB.getId());
+
+        List<Long> visibleMonitorIdsB = entityManager
+                .createQuery("select m from Monitor m", Monitor.class)
+                .getResultList()
+                .stream()
+                .map(Monitor::getId)
+                .sorted(Comparator.naturalOrder())
+                .toList();
+
+        assertEquals(
+                List.of(monitorB.id()),
+                visibleMonitorIdsB,
+                "Workspace B's filter should hide Workspace A's monitor"
         );
     }
 

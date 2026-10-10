@@ -83,4 +83,16 @@ public class WorkspaceService {
 
         return List.of(workspace);
     }
+
+    @Transactional(readOnly = true)
+    public List<Workspace> getWorkspacesForUser(String email) {
+        Long workspaceId =
+                currentWorkspaceService.getCurrentWorkspaceId(email);
+
+        Workspace workspace = workspaceRepository.findById(workspaceId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Workspace not found"));
+
+        return List.of(workspace);
+    }
 }
