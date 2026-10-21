@@ -351,14 +351,14 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Self-check:** 1) What is a proxy in Spring AOP? 2) JDK dynamic proxy vs CGLIB — when does Spring pick which? 3) Self-invocation problem in AOP — same as `@Transactional`? 4) `@Around` vs `@Before` — when do you need `@Around`? 5) Common AOP use cases beyond logging?
 **Answers:** 1) A generated wrapper class that intercepts method calls, runs advice, then delegates to the real target. 2) JDK proxy = when target implements an interface. CGLIB = subclass-based, when no interface (final classes and methods can't be proxied). 3) Yes — same reason. Direct method call bypasses the proxy. 4) When you need to control invocation (modify args, skip call, retry, catch exceptions and return alternative). `@Before` only observes. 5) Transactions, security (`@PreAuthorize`), caching, metrics, retries (`@Retryable`), rate limiting.
 
-### ☐ Day 2 — Bean lifecycle + scopes
+### ✅ Day 2 — Bean lifecycle + scopes
 
 **Resource:** Baeldung "Spring Bean Lifecycle" + "Spring Bean Scopes".
 **Code:** `ProbeScheduler` with `@PostConstruct` (log "scheduler ready" + populate initial state) and `@PreDestroy` (log "scheduler shutting down"). Create a `@Scope("prototype")` bean and prove that injecting into a singleton captures ONE instance — fix with `ObjectProvider<T>` or `@Lookup`.
 **Self-check:** 1) Bean scopes in Spring — name 3? 2) When is `@PostConstruct` called? 3) `@PostConstruct` vs `InitializingBean.afterPropertiesSet()`? 4) When would you use prototype scope? 5) Request/session scope — used when?
 **Answers:** 1) singleton (default), prototype, request, session, application, websocket. 2) After DI is complete, before the bean is put into service. 3) Functionally similar; annotation-based is preferred. Interface = older/framework-coupled. 4) When each user of the bean needs a fresh instance (stateful strategy objects, non-thread-safe collaborators). 5) Web-scoped beans that live for one HTTP request or one session — rare in modern REST APIs (stateless preferred).
 
-### ☐ Day 3 — Custom auto-configuration (Roost webhook module as a starter)
+### ✅ Day 3 — Custom auto-configuration (Roost webhook module as a starter)
 
 **Resource:** Baeldung "Create a Custom Auto-Configuration".
 **Code:** carve `com.chandu.roost.webhook.*` into a "module": `WebhookProperties` (`@ConfigurationProperties("roost.webhook")`), `WebhookService`, `WebhookAutoConfiguration` with `@ConditionalOnMissingBean` + `@ConditionalOnProperty(name = "roost.webhook.enabled", havingValue = "true")`. Register via `META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports`. Consume from `IncidentService`.
