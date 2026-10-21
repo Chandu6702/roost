@@ -7,6 +7,7 @@ import com.chandu.roost.repository.IncidentRepository;
 import com.chandu.roost.repository.MonitorRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.chandu.roost.aop.LogExecutionTime;
 
 import java.time.Instant;
 
@@ -28,6 +29,7 @@ public class IncidentService {
         this.monitorRepository = monitorRepository;
     }
 
+    @LogExecutionTime
     @Transactional
     public Incident open(Long monitorId, String summary) {
         Monitor monitor = monitorRepository.findById(monitorId)

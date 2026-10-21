@@ -344,7 +344,7 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 
 ## WEEK 16 — Spring internals: AOP, lifecycle, caching, virtual threads
 
-### ☐ Day 1 — AOP: `@Aspect`, `@Around`, pointcuts
+### ✅ Day 1 — AOP: `@Aspect`, `@Around`, pointcuts
 
 **Resource:** Baeldung "Intro to Spring AOP" + "Spring AOP `@Around`".
 **Code:** custom annotation `@LogExecutionTime`; aspect `LoggingAspect` with `@Around("@annotation(LogExecutionTime)")` logging method name + duration. Apply to `ProbeRunner.probe(...)` and `IncidentService.open(...)`.
