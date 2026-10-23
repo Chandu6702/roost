@@ -33,3 +33,8 @@ roost:
   probe:
     default-interval-seconds: 60
     default-timeout-millis: 5000
+
+  webhook:
+    enabled: true
+    endpoint-url: https://example.com/webhooks
+    timeout-ms: 5000

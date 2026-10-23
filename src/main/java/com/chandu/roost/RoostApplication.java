@@ -12,5 +12,4 @@ public class RoostApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(RoostApplication.class, args);
 	}
-
 }
