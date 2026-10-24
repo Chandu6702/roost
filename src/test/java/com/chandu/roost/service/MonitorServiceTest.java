@@ -1,5 +1,6 @@
 package com.chandu.roost.service;
 
+import com.chandu.roost.dto.MonitorCacheDto;
 import com.chandu.roost.dto.MonitorRequest;
 import com.chandu.roost.entity.Monitor;
 import com.chandu.roost.entity.MonitorType;
@@ -27,6 +28,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import java.util.List;
+import static org.mockito.Mockito.never;
 
 @ExtendWith(MockitoExtension.class)
 class MonitorServiceTest {
@@ -63,6 +66,9 @@ class MonitorServiceTest {
 
     private MonitorService monitorService;
 
+    @Mock
+    private WorkspaceMonitorCacheService workspaceMonitorCacheService;
+
     @BeforeEach
     void setUp() {
         monitorService = new MonitorService(
@@ -72,7 +78,8 @@ class MonitorServiceTest {
                 probeScheduleRepository,
                 auditService,
                 currentWorkspaceService,
-                entityManager
+                entityManager,
+                workspaceMonitorCacheService
         );
 
         when(currentWorkspaceService.getCurrentWorkspaceId(USER_EMAIL))
@@ -167,4 +174,43 @@ class MonitorServiceTest {
                 () -> monitorService.getMonitor(999L, USER_EMAIL)
         );
     }
+
+
+
+    @Test
+    void getMonitorsByWorkspace_whenWorkspaceMatches_delegatesToCacheService() {
+        mockWorkspaceFilter();
+
+        List<MonitorCacheDto> expectedMonitors = List.of(
+                new MonitorCacheDto(
+                        1L,
+                        "Google",
+                        "https://google.com",
+                        MonitorType.HTTP,
+                        60,
+                        5000,
+                        Instant.parse("2026-01-01T00:00:00Z")
+                )
+        );
+
+        when(workspaceMonitorCacheService
+                .getMonitorsByWorkspaceId(WORKSPACE_ID))
+                .thenReturn(expectedMonitors);
+
+        List<MonitorCacheDto> result =
+                monitorService.getMonitorsByWorkspace(
+                        WORKSPACE_ID,
+                        USER_EMAIL
+                );
+
+        assertSame(expectedMonitors, result);
+
+        verify(workspaceMonitorCacheService)
+                .getMonitorsByWorkspaceId(WORKSPACE_ID);
+
+        verify(monitorRepository, never())
+                .findByWorkspaceId(WORKSPACE_ID);
+    }
+
+
 }

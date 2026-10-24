@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.chandu.roost.dto.MonitorCacheDto;
 
 import java.util.List;
 
@@ -57,11 +58,21 @@ public class MonitorController {
                                 workspaceId,
                                 authentication.getName())
                         .stream()
-                        .map(this::toResponse)
+                        .map(dto -> new MonitorResponse(
+                                dto.id(),
+                                workspaceId,
+                                dto.name(),
+                                dto.url(),
+                                dto.intervalSeconds(),
+                                dto.timeoutMillis(),
+                                dto.type(),
+                                dto.createdAt()
+                        ))
                         .toList();
 
         return ResponseEntity.ok(responses);
     }
+
 
     @GetMapping("/workspace/{workspaceId}/search")
     public ResponseEntity<List<MonitorResponse>> searchMonitors(

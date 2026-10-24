@@ -1,6 +1,7 @@
 
 package com.chandu.roost.service;
 
+import com.chandu.roost.dto.MonitorCacheDto;
 import com.chandu.roost.dto.MonitorRequest;
 import com.chandu.roost.dto.ProbeResultResponse;
 import com.chandu.roost.entity.*;
@@ -13,6 +14,7 @@ import com.chandu.roost.specification.MonitorSpecification;
 import jakarta.persistence.EntityManager;
 import org.hibernate.Filter;
 import org.hibernate.Session;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -34,6 +36,7 @@ public class MonitorService {
     private final AuditService auditService;
     private final CurrentWorkspaceService currentWorkspaceService;
     private final EntityManager entityManager;
+    private final WorkspaceMonitorCacheService workspaceMonitorCacheService;
 
     public MonitorService(
             MonitorRepository monitorRepository,
@@ -42,7 +45,7 @@ public class MonitorService {
             ProbeScheduleRepository probeScheduleRepository,
             AuditService auditService,
             CurrentWorkspaceService currentWorkspaceService,
-            EntityManager entityManager) {
+            EntityManager entityManager, WorkspaceMonitorCacheService workspaceMonitorCacheService) {
 
         this.monitorRepository = monitorRepository;
         this.workspaceRepository = workspaceRepository;
@@ -51,6 +54,7 @@ public class MonitorService {
         this.auditService = auditService;
         this.currentWorkspaceService = currentWorkspaceService;
         this.entityManager = entityManager;
+        this.workspaceMonitorCacheService = workspaceMonitorCacheService;
     }
 
     @Transactional(readOnly = true)
@@ -73,6 +77,7 @@ public class MonitorService {
                 .orElseThrow(() -> new MonitorNotFoundException(id));
     }
 
+    @CacheEvict(cacheNames = "workspaceMonitors", allEntries = true)
     @Transactional
     public Monitor createMonitor(
             MonitorRequest request, String email) {
@@ -105,6 +110,7 @@ public class MonitorService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "workspaceMonitors", allEntries = true)
     public Monitor updateMonitor(
             Long id, MonitorRequest request, String email) {
 
@@ -122,20 +128,24 @@ public class MonitorService {
     }
 
     @Transactional
+    @CacheEvict(cacheNames = "workspaceMonitors", allEntries = true)
     public void deleteMonitor(Long id, String email) {
         Monitor monitor = getMonitor(id, email);
         monitorRepository.delete(monitor);
     }
 
+
     @Transactional(readOnly = true)
-    public List<Monitor> getMonitorsByWorkspace(
+    public List<MonitorCacheDto> getMonitorsByWorkspace(
             Long requestedWorkspaceId, String email) {
 
         Long workspaceId = tenantWorkspaceId(email);
         requireSameWorkspace(requestedWorkspaceId, workspaceId);
 
-        return monitorRepository.findByWorkspaceId(workspaceId);
+        return workspaceMonitorCacheService
+                .getMonitorsByWorkspaceId(workspaceId);
     }
+
 
     @Transactional(readOnly = true)
     public List<Monitor> searchMonitors(

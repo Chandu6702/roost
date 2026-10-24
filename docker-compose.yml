@@ -7,3 +7,8 @@ services:
       POSTGRES_USER: roost
       POSTGRES_PASSWORD: roost
       POSTGRES_DB: roost
+
+  redis:
+    image: redis:7
+    ports:
+      - "6380:6379"

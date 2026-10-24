@@ -19,6 +19,11 @@ spring:
       ddl-auto: validate
     show-sql: true
 
+  data:
+    redis:
+      host: localhost
+      port: 6380
+
   logging:
     level:
       org.hibernate.SQL: DEBUG

@@ -365,7 +365,7 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Self-check:** 1) How does SB discover auto-configs at startup? 2) Common `@ConditionalOn*` variants — name 4? 3) Why `@ConditionalOnMissingBean`? 4) What does `META-INF/spring/...AutoConfiguration.imports` do? 5) Order of auto-config execution?
 **Answers:** 1) Reads `AutoConfiguration.imports` files from all JARs on classpath — each line is a fully-qualified class name. 2) `OnClass`, `OnMissingClass`, `OnBean`, `OnMissingBean`, `OnProperty`, `OnWebApplication`. 3) So a user of your starter can override your default by defining their own bean of the same type. Non-invasive. 4) Modern (SB3+) replacement for `spring.factories`. Explicit list of auto-config classes to import. 5) Determined by `@AutoConfigureBefore`/`@AutoConfigureAfter`/`@AutoConfigureOrder`; else undefined.
 
-### ☐ Day 4 — Caching + Redis
+### ✅ Day 4 — Caching + Redis
 
 **Resource:** Baeldung "Guide to Caching in Spring" + "Spring Data Redis Cache".
 **Code:** `@EnableCaching`. Annotate `MonitorService.listByWorkspace(...)` with `@Cacheable("monitors")`. Start with in-memory `ConcurrentMapCacheManager`. Then add Redis via `spring-boot-starter-data-redis` + docker-compose redis. Configure `RedisCacheConfiguration` with a 60s TTL. Demonstrate `@CacheEvict` on `save`/`delete` (invalidates the cached list).
