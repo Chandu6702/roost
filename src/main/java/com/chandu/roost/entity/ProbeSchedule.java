@@ -26,4 +26,20 @@ public class ProbeSchedule {
         this.monitor = monitor;
         this.nextProbeAt = nextProbeAt;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public Monitor getMonitor() {
+        return monitor;
+    }
+
+    public Instant getNextProbeAt() {
+        return nextProbeAt;
+    }
+
+    public void setNextProbeAt(Instant nextProbeAt) {
+        this.nextProbeAt = nextProbeAt;
+    }
 }

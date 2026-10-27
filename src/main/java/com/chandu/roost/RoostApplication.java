@@ -1,3 +1,4 @@
+
 package com.chandu.roost;
 
 import com.chandu.roost.config.ProbeProperties;
@@ -5,10 +6,16 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
 
 @SpringBootApplication
 @EnableConfigurationProperties(ProbeProperties.class)
 @EnableCaching
+@EnableScheduling
+@EnableAsync
 public class RoostApplication {
 
 	public static void main(String[] args) {

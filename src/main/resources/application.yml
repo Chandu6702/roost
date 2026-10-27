@@ -24,6 +24,10 @@ spring:
       host: localhost
       port: 6380
 
+  threads:
+    virtual:
+      enabled: true
+
   logging:
     level:
       org.hibernate.SQL: DEBUG
