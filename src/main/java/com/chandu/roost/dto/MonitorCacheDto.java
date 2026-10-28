@@ -4,6 +4,7 @@ package com.chandu.roost.dto;
 import com.chandu.roost.entity.Monitor;
 import com.chandu.roost.entity.MonitorType;
 
+import java.io.Serializable;
 import java.time.Instant;
 
 public record MonitorCacheDto(
@@ -14,7 +15,7 @@ public record MonitorCacheDto(
         Integer intervalSeconds,
         Integer timeoutMillis,
         Instant createdAt
-) {
+) implements Serializable {
     public static MonitorCacheDto from(Monitor monitor) {
         return new MonitorCacheDto(
                 monitor.getId(),

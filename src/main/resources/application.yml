@@ -28,12 +28,13 @@ spring:
     virtual:
       enabled: true
 
-  logging:
-    level:
-      org.hibernate.SQL: DEBUG
-
   config:
     import: optional:classpath:application-local.yml
+
+logging:
+  level:
+    org.springframework.cache: TRACE
+    org.hibernate.SQL: DEBUG
 
 server:
   port: 8080

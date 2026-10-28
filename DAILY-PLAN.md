@@ -379,7 +379,7 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Self-check:** 1) `fixedRate` vs `fixedDelay` vs `cron`? 2) Why virtual threads for probe workload? 3) `@Async` return type — `void` vs `CompletableFuture<T>`? 4) What's the default `@Async` executor? Why is that a pitfall? 5) Virtual threads: what problem does pinning cause?
 **Answers:** 1) `fixedRate` = time between _starts_; overlaps if slow. `fixedDelay` = time between end-of-N and start-of-N+1; never overlaps. `cron` = specific schedule ("0 0 \* \* \* \*"). 2) Probes are I/O-bound (HTTP calls) — virtual threads scale to millions cheaply. Traditional pool: 200 threads = 200 concurrent probes; virtual: 10k+ trivially. 3) `void` = fire-and-forget, exceptions lost. `CompletableFuture<T>` = can chain, catch exceptions, join. Prefer the latter unless truly fire-and-forget. 4) `SimpleAsyncTaskExecutor` — no pool, spawns unbounded threads per call. Configure a named `ThreadPoolTaskExecutor` bean and route via `@Async("customExecutor")`. Or, since Java 21, use `spring.task.execution.thread-name-prefix` + virtual-thread executor. 5) Native code, `synchronized` blocks, and `Thread.currentThread()`-holding operations pin the virtual thread to the carrier — blocks a platform thread — defeats the purpose. Use `ReentrantLock` instead of `synchronized`.
 
-### ☐ Monday W16 — deep-work + review
+### ✅ Monday W16 — deep-work + review
 
 **Morning:** implement the probe engine — `@Scheduled` fetches due monitors → dispatches to virtual-thread executor → each thread hits the URL, records a `ProbeResult`, triggers incident open/close if state changed. This is the _heart_ of Roost.
 **Evening:** `interview-qa/week-16-internals.md` — virtual threads is a hot topic.
