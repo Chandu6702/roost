@@ -1,3 +1,4 @@
+
 package com.chandu.roost.probe;
 
 import com.chandu.roost.config.ProbeProperties;
@@ -12,18 +13,24 @@ class ProbeRunnerTest {
 
         MockHttpProbeClient mockClient = new MockHttpProbeClient();
 
-        ProbeRunner runner = new ProbeRunner(mockClient, new ProbeProperties(60,5000));
+        ProbeRunner runner = new ProbeRunner(
+                mockClient,
+                new ProbeProperties(60, 5000)
+        );
 
-        String result = runner.run("https://example.com");
+        HttpProbeClient.ProbeOutcome result =
+                runner.run("https://example.com", 5000);
 
-        assertEquals("Mock response", result);
+        assertEquals(true, result.healthy());
+        assertEquals(200, result.statusCode());
+        assertEquals(null, result.errorMessage());
     }
 
     static class MockHttpProbeClient extends HttpProbeClient {
 
         @Override
-        public String probe(String url) {
-            return "Mock response";
+        public ProbeOutcome probe(String url, Integer timeoutMillis) {
+            return new ProbeOutcome(true, 200, null);
         }
     }
 }

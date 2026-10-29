@@ -33,7 +33,10 @@ public class ProbeRunner {
     }
 
     @LogExecutionTime
-    public String run(String url) {
-        return httpProbeClient.probe(url);
+    public HttpProbeClient.ProbeOutcome run(
+            String url,
+            Integer timeoutMillis
+    ) {
+        return httpProbeClient.probe(url, timeoutMillis);
     }
 }

@@ -52,28 +52,43 @@ public class ProbeTask {
         Monitor monitor = schedule.getMonitor();
         Instant probedAt = Instant.now();
         long startNanos = System.nanoTime();
+
+
         try {
-            probeRunner.run(monitor.getUrl());
+            var outcome = probeRunner.run(
+                    monitor.getUrl(),
+                    monitor.getTimeoutMillis()
+            );
 
             int latencyMs = (int) (
                     (System.nanoTime() - startNanos) / 1_000_000
             );
 
+            String status = outcome.healthy() ? "UP" : "DOWN";
+
             probeResultRepository.save(
                     new ProbeResult(
                             monitor,
                             probedAt,
-                            "UP",
+                            status,
                             latencyMs,
-                            null
+                            outcome.errorMessage()
                     )
             );
 
-            log.info(
-                    "Probe completed for monitor {} in {} ms",
-                    monitor.getId(),
-                    latencyMs
-            );
+            if (outcome.healthy()) {
+                log.info(
+                        "Probe completed for monitor {} in {} ms",
+                        monitor.getId(),
+                        latencyMs
+                );
+            } else {
+                log.warn(
+                        "Probe failed for monitor {}: {}",
+                        monitor.getId(),
+                        outcome.errorMessage()
+                );
+            }
         } catch (Exception exception) {
             int latencyMs = (int) (
                     (System.nanoTime() - startNanos) / 1_000_000
@@ -95,5 +110,6 @@ public class ProbeTask {
                     exception.getMessage()
             );
         }
+
     }
 }

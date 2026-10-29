@@ -388,14 +388,14 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 
 ## WEEK 17 — Integrations: outbox + Kafka + webhooks + auditing
 
-### ☐ Day 1 — Calling external APIs (`RestClient`, `WebClient`, `@HttpExchange`)
+### ✅ Day 1 — Calling external APIs (`RestClient`, `WebClient`, `@HttpExchange`)
 
 **Resource:** Baeldung "Spring RestClient" + "Spring `@HttpExchange`".
 **Code:** replace the probe's `HttpProbeClient` stub with a real HTTP call using `RestClient` (Spring 6+). Timeout = probe's configured timeoutMillis. Handle 2xx/3xx = UP, 4xx/5xx = DOWN, connection error = DOWN with reason.
 **Self-check:** 1) `RestTemplate` (legacy) vs `RestClient` (Spring 6+) vs `WebClient` — which for what? 2) Timeouts on `RestClient` — how? 3) Retry — where does it belong (client, wrapper, aspect)? 4) Connection pool — do you need one? 5) How do you propagate a request-id through outbound calls (tracing)?
 **Answers:** 1) `RestTemplate` = deprecated maintenance mode. `RestClient` = modern synchronous, replaces RestTemplate. `WebClient` = reactive; use in reactive stack or when you want backpressure. 2) Underlying HTTP client — for JDK's `HttpClient`, set connect+read timeouts via builder. 3) Wrapper method (retry policy is business logic, not transport). Or Spring Retry `@Retryable`. Never inside the transport client — hides behavior. 4) Yes — reusing connections avoids TCP+TLS handshake per call. JDK HttpClient pools by default. 5) MDC + interceptor that copies MDC value into `X-Request-Id` header.
 
-### ☐ Day 2 — Outbox pattern (reliable events)
+### ✅ Day 2 — Outbox pattern (reliable events)
 
 **Resource:** Chris Richardson "Transactional Outbox Pattern" (microservices.io) + Baeldung "Transactional Outbox".
 **Code:** `V8__outbox.sql` (id, aggregate*type, aggregate_id, event_type, payload jsonb, created_at, published_at nullable). When `IncidentService.open` runs inside its transaction, it writes: (a) new `Incident`, (b) audit row, (c) outbox row `event_type = INCIDENT_OPENED`. Same tx. Later, a `@Scheduled` publisher polls unpublished outbox rows and sends them (to Kafka tomorrow).
