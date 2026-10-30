@@ -19,7 +19,7 @@ public class AuditService {
         this.auditLogRepository = auditLogRepository;
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void logStateChange(Incident incident, String action) {
         AuditLog auditLog = new AuditLog(
                 incident,

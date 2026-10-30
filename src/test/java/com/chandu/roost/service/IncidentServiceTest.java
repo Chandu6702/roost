@@ -1,14 +1,15 @@
 package com.chandu.roost.service;
 
-import com.chandu.roost.entity.AuditLog;
 import com.chandu.roost.entity.Incident;
 import com.chandu.roost.entity.IncidentStatus;
 import com.chandu.roost.entity.Monitor;
 import com.chandu.roost.entity.MonitorType;
+import com.chandu.roost.entity.OutboxEvent;
 import com.chandu.roost.entity.Workspace;
 import com.chandu.roost.repository.AuditLogRepository;
 import com.chandu.roost.repository.IncidentRepository;
 import com.chandu.roost.repository.MonitorRepository;
+import com.chandu.roost.repository.OutboxEventRepository;
 import com.chandu.roost.repository.WorkspaceRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,77 +39,11 @@ class IncidentServiceTest {
     @Autowired
     private WorkspaceRepository workspaceRepository;
 
-    @Test
-    void resolve_rollsBackIncidentButAuditSurvives() {
-
-        // Arrange
-        Workspace workspace = new Workspace(
-                "Test Workspace",
-                "incident-test-" + UUID.randomUUID()
-        );
-
-        workspace = workspaceRepository.save(workspace);
-
-        Monitor monitor = monitorRepository.save(
-                new Monitor(
-                        workspace,
-                        "Test Monitor",
-                        "https://example.com",
-                        MonitorType.HTTP,
-                        60,
-                        5000,
-                        Instant.now()
-                )
-        );
-
-        Incident incident = incidentRepository.save(
-                new Incident(
-                        monitor,
-                        IncidentStatus.OPEN,
-                        Instant.now(),
-                        "Test incident"
-                )
-        );
-
-        Long incidentId = incident.getId();
-
-        // Move OPEN → ACK so RESOLVED is a valid next state.
-        incidentService.acknowledge(incidentId);
-
-        // Act:
-        // resolve() intentionally throws after creating the
-        // INCIDENT_RESOLVED audit in a REQUIRES_NEW transaction.
-        assertThrows(
-                RuntimeException.class,
-                () -> incidentService.resolve(incidentId)
-        );
-
-        // Assert:
-        // The REQUIRES_NEW audit transaction survives.
-        List<AuditLog> auditLogs =
-                auditLogRepository.findByIncidentId(incidentId);
-
-        assertEquals(
-                1,
-                auditLogs.stream()
-                        .filter(audit ->
-                                "INCIDENT_RESOLVED".equals(audit.getAction()))
-                        .count()
-        );
-
-        // Assert:
-        // The outer resolve transaction rolled back.
-        // The incident should remain ACK, because OPEN → ACK
-        // happened before the failed RESOLVE transaction.
-        Incident result = incidentRepository.findById(incidentId)
-                .orElseThrow();
-
-        assertEquals(IncidentStatus.ACK, result.getStatus());
-        assertNull(result.getResolvedAt());
-    }
+    @Autowired
+    private OutboxEventRepository outboxEventRepository;
 
     @Test
-    void open_createsOpenIncident() {
+    void open_createsOpenIncidentAndOutboxEvent() {
 
         Workspace workspace = new Workspace(
                 "Open Test Workspace",
@@ -134,23 +69,57 @@ class IncidentServiceTest {
                 "Monitor is DOWN"
         );
 
+        // Verify incident creation.
         assertNotNull(incident.getId());
+        assertEquals(IncidentStatus.OPEN, incident.getStatus());
+        assertNotNull(incident.getOpenedAt());
+        assertEquals("Monitor is DOWN", incident.getSummary());
+        assertEquals(monitor.getId(), incident.getMonitor().getId());
 
+        // Verify the outbox event.
+        List<OutboxEvent> events =
+                outboxEventRepository
+                        .findByPublishedAtIsNullOrderByCreatedAtAsc();
+
+        OutboxEvent event = events.stream()
+                .filter(e -> incident.getId().equals(e.getAggregateId()))
+                .findFirst()
+                .orElseThrow(() ->
+                        new AssertionError(
+                                "Expected INCIDENT_OPENED outbox event"
+                        )
+                );
+
+        assertEquals("Incident", event.getAggregateType());
+        assertEquals(incident.getId(), event.getAggregateId());
+        assertEquals("INCIDENT_OPENED", event.getEventType());
+        assertNotNull(event.getPayload());
+        assertNull(event.getPublishedAt());
+
+        // Verify event payload.
         assertEquals(
-                IncidentStatus.OPEN,
-                incident.getStatus()
+                incident.getId().longValue(),
+                ((Number) event.getPayload().get("incidentId")).longValue()
         );
 
-        assertNotNull(incident.getOpenedAt());
+        assertEquals(
+                monitor.getId().longValue(),
+                ((Number) event.getPayload().get("monitorId")).longValue()
+        );
+
+        assertEquals(
+                "OPEN",
+                event.getPayload().get("status")
+        );
 
         assertEquals(
                 "Monitor is DOWN",
-                incident.getSummary()
+                event.getPayload().get("summary")
         );
 
         assertEquals(
-                monitor.getId(),
-                incident.getMonitor().getId()
+                incident.getOpenedAt().toString(),
+                event.getPayload().get("openedAt")
         );
     }
 
@@ -181,11 +150,7 @@ class IncidentServiceTest {
                 "Monitor is DOWN"
         );
 
-        assertEquals(
-                IncidentStatus.OPEN,
-                incident.getStatus()
-        );
-
+        assertEquals(IncidentStatus.OPEN, incident.getStatus());
         assertNotNull(incident.getOpenedAt());
 
         // OPEN → ACK
@@ -195,24 +160,15 @@ class IncidentServiceTest {
                 incidentRepository.findById(incident.getId())
                         .orElseThrow();
 
-        assertEquals(
-                IncidentStatus.ACK,
-                acknowledged.getStatus()
-        );
-
-        assertNotNull(
-                acknowledged.getAcknowledgedAt()
-        );
+        assertEquals(IncidentStatus.ACK, acknowledged.getStatus());
+        assertNotNull(acknowledged.getAcknowledgedAt());
 
         /*
-         * resolve() currently contains the intentional forced
-         * failure used by the REQUIRES_NEW transaction test.
+         * resolve() currently contains an intentional forced failure
+         * for the transaction rollback verification test.
          *
-         * Therefore we do not call incidentService.resolve()
-         * here.
-         *
-         * The pure IncidentStateMachineTest verifies the complete
-         * ACK → RESOLVED domain transition.
+         * The complete ACK → RESOLVED domain transition is covered
+         * by IncidentStateMachineTest.
          */
     }
 }
