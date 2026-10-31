@@ -438,7 +438,7 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Self-check:** 1) Why subdomain instead of `/status/{slug}`? 2) Cookie/CSRF implications of subdomains? 3) How would this scale — 10k tenants, DNS strategy? 4) Public endpoints and multi-tenant filter — how do they coexist? 5) What's the risk if you forget to disable tenant filter for a public endpoint? Or if you forget to check `published = true`?
 **Answers:** 1) Branding, cookie scoping if you add web auth later, easier CDN caching per tenant, no path-based tenant ID leak in URLs. 2) `*.roost.local` cookies scope to subdomains automatically; be careful not to set root-domain cookies accidentally. 3) Wildcard DNS `*.roost.dev A <load-balancer-ip>`, SSL via wildcard cert or ACME per-tenant. 4) Public endpoints resolve tenant from `Host` header, then enable the filter with that tenant — same filter, different resolution path. 5) You leak tenant A's monitors to tenant B's status page. Integration test explicitly for this: put a monitor in A, hit B's status page, assert it's absent.
 
-### ☐ Day 2 — Actuator + Micrometer + Prometheus
+### ✅ Day 2 — Actuator + Micrometer + Prometheus
 
 **Resource:** Baeldung "Spring Boot Actuator" + "Micrometer + Prometheus".
 **Code:** expose `/actuator/health`, `/actuator/info`, `/actuator/metrics`, `/actuator/prometheus`. Add `micrometer-registry-prometheus`. Custom metrics: `roost.probes.executed` counter, `roost.probes.duration` timer, `roost.incidents.open` gauge. Curl `/actuator/prometheus` — see them exposed in the Prometheus text format.

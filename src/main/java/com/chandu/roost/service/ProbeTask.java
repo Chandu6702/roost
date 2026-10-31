@@ -29,17 +29,20 @@ public class ProbeTask {
     private final ProbeResultRepository probeResultRepository;
     private final ProbeRunner probeRunner;
     private final IncidentService incidentService;
+    private final io.micrometer.core.instrument.MeterRegistry meterRegistry;
 
     public ProbeTask(
             ProbeScheduleRepository probeScheduleRepository,
             ProbeResultRepository probeResultRepository,
             ProbeRunner probeRunner,
-            IncidentService incidentService
+            IncidentService incidentService,
+            io.micrometer.core.instrument.MeterRegistry meterRegistry
     ) {
         this.probeScheduleRepository = probeScheduleRepository;
         this.probeResultRepository = probeResultRepository;
         this.probeRunner = probeRunner;
         this.incidentService = incidentService;
+        this.meterRegistry = meterRegistry;
 
         log.debug("ProbeTask instance created");
     }
@@ -70,8 +73,15 @@ public class ProbeTask {
             errorMessage = exception.getMessage();
         }
 
-        int latencyMs = (int) ((System.nanoTime() - startNanos) / 1_000_000);
+        long elapsedNanos = System.nanoTime() - startNanos;
+        int latencyMs = (int) (elapsedNanos / 1_000_000);
         String status = healthy ? "UP" : "DOWN";
+
+        // Metrics: low-cardinality (tag by outcome only, never by monitor/url).
+        meterRegistry.counter("roost.probes.executed",
+                "outcome", healthy ? "up" : "down").increment();
+        meterRegistry.timer("roost.probes.duration")
+                .record(elapsedNanos, java.util.concurrent.TimeUnit.NANOSECONDS);
 
         probeResultRepository.save(
                 new ProbeResult(monitor, probedAt, status, latencyMs, errorMessage)

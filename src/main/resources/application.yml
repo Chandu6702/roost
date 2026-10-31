@@ -50,6 +50,19 @@ logging:
     org.springframework.cache: TRACE
     org.hibernate.SQL: DEBUG
 
+management:
+  endpoints:
+    web:
+      exposure:
+        # Never expose everything in prod (env, heapdump, threaddump leak internals).
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+  info:
+    env:
+      enabled: true
+
 server:
   port: 8080
 

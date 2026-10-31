@@ -18,4 +18,6 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
 
     List<Incident> findByMonitorIdInOrderByOpenedAtDesc(
             Collection<Long> monitorIds, Pageable pageable);
+
+    long countByStatus(IncidentStatus status);
 }
