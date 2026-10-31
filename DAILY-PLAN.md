@@ -416,7 +416,7 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Self-check:** 1) Optimistic vs pessimistic locking — pick each for a use case. 2) How does `@Version` work at SQL level? 3) What HTTP status should you return to the client on a version conflict? 4) `AuditorAware` — why not just read `SecurityContext` directly in `@PrePersist`? 5) Immutable audit trail — how do you achieve it here?
 **Answers:** 1) Optimistic: no locks held; conflict detected at commit (cheap, works well when contention low). Pessimistic: `SELECT FOR UPDATE` holds the row (used when contention high, e.g., seat inventory in EventPulse). 2) UPDATE ... WHERE id=? AND version=?; if no rows updated → conflict. Hibernate throws. 3) 409 Conflict, with a message saying "reload and retry." 4) Cleaner separation — the audit machinery is decoupled from SecurityContext; testable independently by swapping the `AuditorAware` bean. 5) The outbox rows + audit trail table serve as immutable log; DB permission for the app user is INSERT-only on `audit_log`.
 
-### ☐ Day 5 — Outbound webhooks with HMAC signature verification
+### ✅ Day 5 — Outbound webhooks with HMAC signature verification
 
 **Resource:** Stripe docs "Webhook signature verification" (concepts) + Baeldung "HMAC SHA256 in Java".
 **Code:** on `INCIDENT_OPENED` Kafka event, `WebhookService` looks up subscribers for that tenant, POSTs the event to each subscriber's URL, signs body with HMAC-SHA256 of `secret + timestamp + body`, sends signature as `X-Roost-Signature` header. Retry with exponential backoff on 5xx; give up after 5 attempts.

@@ -64,5 +64,5 @@ roost:
 
   webhook:
     enabled: true
-    endpoint-url: https://example.com/webhooks
     timeout-ms: 5000
+    max-attempts: 5

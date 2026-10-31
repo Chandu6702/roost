@@ -58,6 +58,8 @@ public class IncidentService {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("incidentId", incident.getId());
         payload.put("monitorId", monitor.getId());
+        // Carried so the async notification consumer can fan out to the right tenant.
+        payload.put("workspaceId", monitor.getWorkspace().getId());
         payload.put("status", incident.getStatus().name());
         payload.put("summary", incident.getSummary());
         payload.put("openedAt", incident.getOpenedAt().toString());

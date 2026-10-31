@@ -1,5 +1,6 @@
 package com.chandu.roost.webhook;
 
+import com.chandu.roost.repository.WebhookSubscriptionRepository;
 import com.chandu.roost.service.WebhookService;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -19,7 +20,8 @@ public class WebhookAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(WebhookService.class)
     public WebhookService webhookService(
+            WebhookSubscriptionRepository subscriptionRepository,
             WebhookProperties webhookProperties) {
-        return new WebhookService(webhookProperties);
+        return new WebhookService(subscriptionRepository, webhookProperties);
     }
 }
