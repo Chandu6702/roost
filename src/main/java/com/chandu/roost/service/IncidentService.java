@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -54,7 +55,45 @@ public class IncidentService {
         );
 
         auditService.logStateChange(incident, "INCIDENT_OPENED");
+        recordEvent(incident, monitor, "INCIDENT_OPENED");
 
+        return incident;
+    }
+
+    /**
+     * Opens an incident only if the monitor has no active one (OPEN or ACK).
+     * Called from the probe pipeline on a DOWN result — dedupes so a monitor
+     * that stays down for an hour produces one incident, not one per probe.
+     */
+    @Transactional
+    public void openIfDown(Long monitorId, String summary) {
+        boolean alreadyActive = incidentRepository.existsByMonitorIdAndStatusIn(
+                monitorId,
+                List.of(IncidentStatus.OPEN, IncidentStatus.ACK));
+
+        if (!alreadyActive) {
+            open(monitorId, summary);
+        }
+    }
+
+    /**
+     * Auto-resolves any active incident for a monitor when it comes back UP.
+     * Each resolution is audited and emits an INCIDENT_RESOLVED outbox event.
+     */
+    @Transactional
+    public void resolveOnRecovery(Long monitorId) {
+        List<Incident> active = incidentRepository.findByMonitorIdAndStatusIn(
+                monitorId,
+                List.of(IncidentStatus.OPEN, IncidentStatus.ACK));
+
+        for (Incident incident : active) {
+            incident.resolveOnRecovery();
+            auditService.logStateChange(incident, "INCIDENT_RESOLVED");
+            recordEvent(incident, incident.getMonitor(), "INCIDENT_RESOLVED");
+        }
+    }
+
+    private void recordEvent(Incident incident, Monitor monitor, String eventType) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("incidentId", incident.getId());
         payload.put("monitorId", monitor.getId());
@@ -64,16 +103,12 @@ public class IncidentService {
         payload.put("summary", incident.getSummary());
         payload.put("openedAt", incident.getOpenedAt().toString());
 
-        OutboxEvent event = new OutboxEvent(
+        outboxEventRepository.save(new OutboxEvent(
                 "Incident",
                 incident.getId(),
-                "INCIDENT_OPENED",
+                eventType,
                 payload
-        );
-
-        outboxEventRepository.save(event);
-
-        return incident;
+        ));
     }
 
     @Transactional

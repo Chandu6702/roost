@@ -28,15 +28,18 @@ public class ProbeTask {
     private final ProbeScheduleRepository probeScheduleRepository;
     private final ProbeResultRepository probeResultRepository;
     private final ProbeRunner probeRunner;
+    private final IncidentService incidentService;
 
     public ProbeTask(
             ProbeScheduleRepository probeScheduleRepository,
             ProbeResultRepository probeResultRepository,
-            ProbeRunner probeRunner
+            ProbeRunner probeRunner,
+            IncidentService incidentService
     ) {
         this.probeScheduleRepository = probeScheduleRepository;
         this.probeResultRepository = probeResultRepository;
         this.probeRunner = probeRunner;
+        this.incidentService = incidentService;
 
         log.debug("ProbeTask instance created");
     }
@@ -53,63 +56,38 @@ public class ProbeTask {
         Instant probedAt = Instant.now();
         long startNanos = System.nanoTime();
 
-
+        boolean healthy;
+        String errorMessage;
         try {
             var outcome = probeRunner.run(
                     monitor.getUrl(),
                     monitor.getTimeoutMillis()
             );
-
-            int latencyMs = (int) (
-                    (System.nanoTime() - startNanos) / 1_000_000
-            );
-
-            String status = outcome.healthy() ? "UP" : "DOWN";
-
-            probeResultRepository.save(
-                    new ProbeResult(
-                            monitor,
-                            probedAt,
-                            status,
-                            latencyMs,
-                            outcome.errorMessage()
-                    )
-            );
-
-            if (outcome.healthy()) {
-                log.info(
-                        "Probe completed for monitor {} in {} ms",
-                        monitor.getId(),
-                        latencyMs
-                );
-            } else {
-                log.warn(
-                        "Probe failed for monitor {}: {}",
-                        monitor.getId(),
-                        outcome.errorMessage()
-                );
-            }
+            healthy = outcome.healthy();
+            errorMessage = outcome.errorMessage();
         } catch (Exception exception) {
-            int latencyMs = (int) (
-                    (System.nanoTime() - startNanos) / 1_000_000
-            );
-
-            probeResultRepository.save(
-                    new ProbeResult(
-                            monitor,
-                            probedAt,
-                            "DOWN",
-                            latencyMs,
-                            exception.getMessage()
-                    )
-            );
-
-            log.warn(
-                    "Probe failed for monitor {}: {}",
-                    monitor.getId(),
-                    exception.getMessage()
-            );
+            healthy = false;
+            errorMessage = exception.getMessage();
         }
 
+        int latencyMs = (int) ((System.nanoTime() - startNanos) / 1_000_000);
+        String status = healthy ? "UP" : "DOWN";
+
+        probeResultRepository.save(
+                new ProbeResult(monitor, probedAt, status, latencyMs, errorMessage)
+        );
+
+        // Drive the incident state machine off the probe result. Same
+        // transaction as the ProbeResult insert, so the result, the incident,
+        // its audit row and the outbox event all commit (or roll back) together.
+        if (healthy) {
+            log.info("Probe UP for monitor {} in {} ms", monitor.getId(), latencyMs);
+            incidentService.resolveOnRecovery(monitor.getId());
+        } else {
+            log.warn("Probe DOWN for monitor {}: {}", monitor.getId(), errorMessage);
+            incidentService.openIfDown(
+                    monitor.getId(),
+                    "Probe failed: " + (errorMessage != null ? errorMessage : "unknown"));
+        }
     }
 }

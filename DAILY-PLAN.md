@@ -423,7 +423,7 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Self-check:** 1) Why HMAC and not just an API key? 2) Why include timestamp in the signature? 3) Replay attacks — how does timestamp help? 4) Backoff strategy — pick one and defend. 5) Return code from _your_ webhook endpoint — what do you accept?
 **Answers:** 1) API key = static credential; if leaked, attacker impersonates permanently. HMAC = proves this message body was signed with the shared secret; can't be replayed with a different body. 2) Prevents replay: recipient rejects requests older than 5 min. 3) Attacker captures a legitimate call, replays later — signature valid but timestamp stale → reject. 4) Exponential backoff with jitter: base × 2^n + random. Prevents thundering-herd retries. Cap total retry time. 5) 2xx = success. 4xx = don't retry (they say the message was bad). 5xx = retry.
 
-### ☐ Monday W17 — deep-work + review
+### ✅ Monday W17 — deep-work + review
 
 **Morning:** wire the full incident pipeline: probe fails → `ProbeResult` DOWN persisted → `IncidentService.openIfNew` inside tx writes outbox row → outbox polling publisher sends to Kafka → `NotificationConsumer` picks it up → `WebhookService` fans out to subscribers with signed body. All async, all at-least-once, all traceable.
 **Evening:** `interview-qa/week-17-integrations.md`.

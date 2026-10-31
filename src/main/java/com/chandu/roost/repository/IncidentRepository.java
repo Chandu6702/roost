@@ -1,7 +1,17 @@
 package com.chandu.roost.repository;
 
 import com.chandu.roost.entity.Incident;
+import com.chandu.roost.entity.IncidentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
+import java.util.List;
+
 public interface IncidentRepository extends JpaRepository<Incident, Long> {
+
+    boolean existsByMonitorIdAndStatusIn(
+            Long monitorId, Collection<IncidentStatus> statuses);
+
+    List<Incident> findByMonitorIdAndStatusIn(
+            Long monitorId, Collection<IncidentStatus> statuses);
 }

@@ -119,4 +119,21 @@ public class Incident extends Auditable {
         this.status = IncidentStatus.RESOLVED;
         this.resolvedAt = Instant.now();
     }
+
+    /**
+     * Automatic recovery: when the monitor comes back UP we resolve the active
+     * incident regardless of whether anyone acknowledged it. Distinct from the
+     * manual {@link #resolve()} (which enforces OPEN → ACK → RESOLVED) because a
+     * service recovering on its own shouldn't need a human ack first.
+     */
+    public void resolveOnRecovery() {
+        if (status == IncidentStatus.RESOLVED) {
+            throw new IllegalStateException(
+                    "Incident is already resolved"
+            );
+        }
+
+        this.status = IncidentStatus.RESOLVED;
+        this.resolvedAt = Instant.now();
+    }
 }
