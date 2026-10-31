@@ -5,6 +5,7 @@ import com.chandu.roost.entity.Monitor;
 import com.chandu.roost.entity.MonitorType;
 import com.chandu.roost.entity.Workspace;
 import com.chandu.roost.error.MonitorNotFoundException;
+import com.chandu.roost.repository.WorkspaceRepository;
 import com.chandu.roost.service.MonitorService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.cache.CacheManager;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Instant;
 
@@ -44,6 +44,11 @@ class MonitorControllerTest {
 
     @MockitoBean
     private CacheManager cacheManager;
+
+    // TenantResolutionFilter is a @Component filter picked up by the web slice;
+    // mock its only collaborator so the slice context builds.
+    @MockitoBean
+    private WorkspaceRepository workspaceRepository;
 
     @Test
     void getMonitor_whenMonitorExists_returns200() throws Exception {

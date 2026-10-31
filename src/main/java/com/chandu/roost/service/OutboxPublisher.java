@@ -3,8 +3,8 @@ package com.chandu.roost.service;
 import com.chandu.roost.entity.OutboxEvent;
 import com.chandu.roost.messaging.OutboxMessage;
 import com.chandu.roost.repository.OutboxEventRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -79,9 +79,10 @@ public class OutboxPublisher {
                     event.getPayload(),
                     event.getCreatedAt()
             ));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             // Non-retryable: a row we can never serialize would block the queue
             // forever. Drop it (mark published) and alert instead of looping.
+            // (Jackson 3 throws this unchecked; we still handle it explicitly.)
             log.error("Dropping unserializable outbox event id={}: {}",
                     event.getId(), e.getMessage());
             return true;

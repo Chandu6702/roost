@@ -107,9 +107,13 @@
 		</dependency>
 
 		<!-- Kafka: outbox relay publishes incident events here, consumer fans out notifications -->
+		<!-- Boot's Kafka starter: pulls spring-kafka AND spring-boot-kafka, the
+		     SB4 auto-config module that supplies KafkaTemplate/ProducerFactory/
+		     listener factories. In SB4 the raw spring-kafka lib alone is not
+		     enough — the auto-config was split out of spring-boot-autoconfigure. -->
 		<dependency>
-			<groupId>org.springframework.kafka</groupId>
-			<artifactId>spring-kafka</artifactId>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-kafka</artifactId>
 		</dependency>
 
 		<!-- JSON (structured) logs for log aggregators; carries MDC fields like requestId -->
