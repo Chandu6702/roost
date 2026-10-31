@@ -445,7 +445,7 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Self-check:** 1) What data does `/actuator/health` include and how do you customize it? 2) Counter vs Gauge vs Timer — pick each for a metric. 3) Why not expose all actuator endpoints in prod? 4) Prometheus scrape model — pull vs push? 5) How would you avoid label explosion (high-cardinality tags)?
 **Answers:** 1) Basic UP/DOWN + individual `HealthIndicator` beans (DB, Redis, Kafka). Custom: implement `HealthIndicator`. 2) Counter (monotonic increasing — probes executed). Gauge (point-in-time — open incidents). Timer (histogram of durations — probe latency). 3) Sensitive data (env vars, heapdump, threaddump). Expose selectively, secure with security. 4) Pull — Prometheus scrapes `/actuator/prometheus` on schedule. Push (Prometheus Pushgateway) only for batch jobs. 5) Never tag by user_id / URL / any high-cardinality attribute. Bucket into categorical values.
 
-### ☐ Day 3 — Structured logging + correlation IDs
+### ✅ Day 3 — Structured logging + correlation IDs
 
 **Resource:** Baeldung "Structured Logging with Logback".
 **Code:** switch Logback to JSON encoder (`logstash-logback-encoder`). Add `RequestIdFilter` that reads `X-Request-Id` header (or generates a UUID) and puts it in MDC. Ensure every log line includes it. Prove it in curl: `curl -H 'X-Request-Id: test-123' http://localhost:8080/monitors` — log lines carry `"requestId": "test-123"`.
