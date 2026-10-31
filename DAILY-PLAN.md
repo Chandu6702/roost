@@ -409,7 +409,7 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Self-check:** 1) Topic vs partition — how do they affect ordering and throughput? 2) Consumer group — one consumer or many? 3) Acks: 0 vs 1 vs all — trade-offs? 4) Rebalancing — what triggers it, why it matters? 5) Dead-letter topic — when and why?
 **Answers:** 1) Topic = logical stream; partitions = ordered logs, keys hash to partitions. Ordering guaranteed _per partition_, not across topic. Throughput scales with partitions. 2) Consumer group = load-balanced set. One consumer per partition max within group. Multiple groups = each gets a full copy of the stream. 3) `acks=0` fire-and-forget (fastest, unsafe). `acks=1` leader acks (default; loses on leader failure). `acks=all` all in-sync replicas ack (safest, slowest). 4) Consumer joins/leaves, partition reassignment. Causes brief pause + duplicate reads. 5) After N failed processing attempts, move to DLQ topic; process out-of-band. Prevents one bad message stalling the consumer.
 
-### ☐ Day 4 — Auditing + optimistic locking (`@Version`)
+### ✅ Day 4 — Auditing + optimistic locking (`@Version`)
 
 **Resource:** Baeldung "JPA Auditing" + "JPA `@Version`".
 **Code:** `@EnableJpaAuditing`. `Auditable` base class with `@CreatedDate`, `@LastModifiedDate`, `@CreatedBy`, `@LastModifiedBy`; `AuditorAware<String>` bean returning current user from `SecurityContextHolder`. Add `@Version Long version` to `Incident`. In an integration test, simulate two concurrent updates to the same incident — assert one succeeds and the other throws `ObjectOptimisticLockingFailureException`.

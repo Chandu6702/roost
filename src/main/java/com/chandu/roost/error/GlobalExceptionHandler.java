@@ -1,10 +1,13 @@
 package com.chandu.roost.error;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,6 +21,9 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationException(
@@ -64,10 +70,69 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
+    @ExceptionHandler(IncidentNotFoundException.class)
+    public ProblemDetail handleIncidentNotFound(
+            IncidentNotFoundException exception,
+            HttpServletRequest request) {
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage()
+        );
+
+        problem.setTitle("Incident Not Found");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("path", request.getRequestURI());
+
+        return problem;
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ProblemDetail handleOptimisticLock(
+            ObjectOptimisticLockingFailureException exception,
+            HttpServletRequest request) {
+
+        // Client's fault (stale write) — log at INFO, not ERROR.
+        log.info("Optimistic lock conflict on {}", request.getRequestURI());
+
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                "This record was modified by someone else. Reload and retry."
+        );
+
+        problem.setTitle("Conflict");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("path", request.getRequestURI());
+
+        return problem;
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ProblemDetail handleIllegalState(
+            IllegalStateException exception,
+            HttpServletRequest request) {
+
+        // Invalid domain state transition, e.g. resolving a non-ACK incident.
+        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
+                HttpStatus.CONFLICT,
+                exception.getMessage()
+        );
+
+        problem.setTitle("Invalid State Transition");
+        problem.setProperty("timestamp", Instant.now());
+        problem.setProperty("path", request.getRequestURI());
+
+        return problem;
+    }
+
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleUnexpectedException(
             Exception exception,
             HttpServletRequest request) {
+
+        // 5xx = our fault — log at ERROR with the full stack for diagnosis,
+        // but return a generic message so we never leak internals to clients.
+        log.error("Unhandled exception on {}", request.getRequestURI(), exception);
 
         ProblemDetail problem = ProblemDetail.forStatusAndDetail(
                 HttpStatus.INTERNAL_SERVER_ERROR,

@@ -5,11 +5,19 @@ import jakarta.persistence.*;
 import java.time.Instant;
 @Entity
 @Table(name = "incidents")
-public class Incident {
+public class Incident extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /**
+     * Optimistic lock. Hibernate appends {@code AND version = ?} to every update
+     * and bumps it; a concurrent update that read the same version updates zero
+     * rows and throws {@code ObjectOptimisticLockingFailureException} (→ HTTP 409).
+     */
+    @Version
+    private Long version;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "monitor_id", nullable = false)
@@ -48,6 +56,10 @@ public class Incident {
 
     public Long getId() {
         return id;
+    }
+
+    public Long getVersion() {
+        return version;
     }
 
     public Monitor getMonitor() {

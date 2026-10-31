@@ -6,6 +6,8 @@ import com.chandu.roost.entity.Incident;
 import com.chandu.roost.entity.IncidentStatus;
 import com.chandu.roost.entity.Monitor;
 import com.chandu.roost.entity.OutboxEvent;
+import com.chandu.roost.error.IncidentNotFoundException;
+import com.chandu.roost.error.MonitorNotFoundException;
 import com.chandu.roost.repository.IncidentRepository;
 import com.chandu.roost.repository.MonitorRepository;
 import com.chandu.roost.repository.OutboxEventRepository;
@@ -40,7 +42,7 @@ public class IncidentService {
     @Transactional
     public Incident open(Long monitorId, String summary) {
         Monitor monitor = monitorRepository.findById(monitorId)
-                .orElseThrow(() -> new RuntimeException("Monitor not found"));
+                .orElseThrow(() -> new MonitorNotFoundException(monitorId));
 
         Incident incident = incidentRepository.save(
                 new Incident(
@@ -75,7 +77,7 @@ public class IncidentService {
     @Transactional
     public void resolve(Long incidentId) {
         Incident incident = incidentRepository.findById(incidentId)
-                .orElseThrow(() -> new RuntimeException("Incident not found"));
+                .orElseThrow(() -> new IncidentNotFoundException(incidentId));
 
         incident.resolve();
         incidentRepository.save(incident);
@@ -86,7 +88,7 @@ public class IncidentService {
     @Transactional
     public void acknowledge(Long incidentId) {
         Incident incident = incidentRepository.findById(incidentId)
-                .orElseThrow(() -> new RuntimeException("Incident not found"));
+                .orElseThrow(() -> new IncidentNotFoundException(incidentId));
 
         incident.acknowledge();
         incidentRepository.save(incident);
