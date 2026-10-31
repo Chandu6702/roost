@@ -146,23 +146,6 @@ public class GlobalExceptionHandler {
         return problem;
     }
 
-    @ExceptionHandler(NotificationChannelNotFoundException.class)
-    public ProblemDetail handleNotificationChannelNotFoundException(
-            NotificationChannelNotFoundException exception,
-            HttpServletRequest request) {
-
-        ProblemDetail problem = ProblemDetail.forStatusAndDetail(
-                HttpStatus.NOT_FOUND,
-                exception.getMessage()
-        );
-
-        problem.setTitle("Notification Channel Not Found");
-        problem.setProperty("timestamp", Instant.now());
-        problem.setProperty("path", request.getRequestURI());
-
-        return problem;
-    }
-
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ProblemDetail> handleBadCredentials(
             BadCredentialsException ex,

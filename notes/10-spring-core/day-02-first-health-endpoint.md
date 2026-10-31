@@ -59,7 +59,11 @@ failed because no database was configured
 
 ## 3. My Roost Code
 
-**File:** `src/main/java/com/chandu/roost/health/HealthController.java`
+> **Later (W19 cleanup):** this hand-rolled `/health` endpoint was removed —
+> Spring Boot Actuator's `/actuator/health` supersedes it in production. The
+> code below is kept here as the learning record of the first endpoint.
+
+**File:** `src/main/java/com/chandu/roost/health/HealthController.java` *(removed)*
 
 ```java
 @RestController
