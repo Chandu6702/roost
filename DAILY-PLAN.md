@@ -402,7 +402,7 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Self-check:** 1) What problem does the outbox solve? 2) Why not just call the message broker from the service directly? 3) At-least-once vs exactly-once — which does outbox give you? 4) How do you handle poison messages? 5) Ordering guarantees?
 **Answers:** 1) Dual-write problem: writing to DB + broker in two separate calls; if the second fails, one side is out of sync. Outbox makes both writes atomic (same DB tx). 2) Because broker send is a network call \_outside* the DB tx — if it fails after commit or succeeds after rollback, state diverges. 3) At-least-once — publisher might publish, crash before marking `published_at`, restart, republish. Consumers must be idempotent. 4) Retry with backoff; after N failures, mark row `poison` and alert. 5) Within one aggregate, DB insert order = publish order (single publisher, ordered scan). Across aggregates: no ordering unless partitioned by aggregate key on Kafka.
 
-### ☐ Day 3 — Kafka: producer + consumer for `INCIDENT_OPENED`
+### ✅ Day 3 — Kafka: producer + consumer for `INCIDENT_OPENED`
 
 **Resource:** Baeldung "Kafka with Spring Boot".
 **Code:** add `spring-kafka` + docker-compose Kafka (bitnami/kafka). Configure producer + topic `roost.incidents`. Rewrite yesterday's outbox publisher to send to Kafka. Add a `NotificationConsumer` `@KafkaListener` on the topic that logs `"would send email to on-call for incident X"` — real notification wiring is future work.

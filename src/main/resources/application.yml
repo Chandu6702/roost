@@ -24,6 +24,20 @@ spring:
       host: localhost
       port: 6380
 
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+    consumer:
+      group-id: roost-notifications
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    listener:
+      missing-topics-fatal: false
+
   threads:
     virtual:
       enabled: true
@@ -40,6 +54,10 @@ server:
   port: 8080
 
 roost:
+  events:
+    topic: roost.incidents
+    partitions: 3
+
   probe:
     default-interval-seconds: 60
     default-timeout-millis: 5000
