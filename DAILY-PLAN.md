@@ -473,27 +473,27 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 
 ## WEEK 19 — Polish + Phase B revision + handoff-ready
 
-### ☐ Day 1 — Feature completion pass
+### ✅ Day 1 — Feature completion pass
 
 Finish any missing user stories. Every documented endpoint returns validated, transactional, tested responses.
 
-### ☐ Day 2 — Error handling audit + logging polish
+### ✅ Day 2 — Error handling audit + logging polish
 
 Audit every controller — no raw stack trace can escape to the client. Every 4xx returns a `ProblemDetail`. Every 5xx logs ERROR with full context. Redact sensitive data.
 
-### ☐ Day 3 — README + architecture diagram + design doc
+### ✅ Day 3 — README + architecture diagram + design doc
 
 Rewrite README: what/why/stack/live-demo/architecture (Mermaid)/local run/API examples/roadmap/license. Write `docs/DESIGN.md` — the interesting problems and how you solved them (mirror the EventPulse v2 README shape).
 
-### ☐ Day 4 — Refactor + code review pass
+### ✅ Day 4 — Refactor + code review pass
 
 Run yourself as reviewer. Dead code out. TODOs resolved or ticketed. Format. Kill obvious duplication.
 
-### ☐ Day 5 — Phase B recall test (closed book) + Phase B consolidated interview-QA
+### ✅ Day 5 — Phase B recall test (closed book) + Phase B consolidated interview-QA
 
 Recall test on Weeks 10–19. Confidence per week. Generate `interview-qa/phase-b-consolidated-qa.md` — top ~50 Spring Boot questions grounded in what you built (not googled generic lists).
 
-### ☐ Monday W19 — Phase B monthly checkpoint
+### ✅ Monday W19 — Phase B monthly checkpoint
 
 **Morning:** any leftover polish + demo dry-run.
 **Evening:** monthly checkpoint — measure pace vs Mar 2027 target. Confirm handoff-ready to `system-design/` Week 20 (Docker → EC2 → RDS → ALB → ECS).
