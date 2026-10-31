@@ -18,6 +18,8 @@ public interface MonitorRepository
 
     List<Monitor> findByWorkspaceId(Long workspaceId);
 
+    List<Monitor> findByWorkspaceIdAndPublishedTrue(Long workspaceId);
+
     List<Monitor> findByWorkspaceIdAndNameContainingIgnoreCase(
             Long workspaceId, String name);
 }

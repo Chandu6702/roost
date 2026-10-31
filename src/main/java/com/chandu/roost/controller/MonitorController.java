@@ -160,6 +160,18 @@ public class MonitorController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}/published")
+    public ResponseEntity<MonitorResponse> setPublished(
+            @PathVariable Long id,
+            @RequestParam boolean value,
+            Authentication authentication) {
+
+        Monitor monitor = monitorService.setPublished(
+                id, value, authentication.getName());
+
+        return ResponseEntity.ok(toResponse(monitor));
+    }
+
     private MonitorResponse toResponse(Monitor monitor) {
         return new MonitorResponse(
                 monitor.getId(),

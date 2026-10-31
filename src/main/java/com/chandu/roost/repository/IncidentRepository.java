@@ -2,6 +2,7 @@ package com.chandu.roost.repository;
 
 import com.chandu.roost.entity.Incident;
 import com.chandu.roost.entity.IncidentStatus;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Collection;
@@ -14,4 +15,7 @@ public interface IncidentRepository extends JpaRepository<Incident, Long> {
 
     List<Incident> findByMonitorIdAndStatusIn(
             Long monitorId, Collection<IncidentStatus> statuses);
+
+    List<Incident> findByMonitorIdInOrderByOpenedAtDesc(
+            Collection<Long> monitorIds, Pageable pageable);
 }

@@ -52,6 +52,10 @@ public class Monitor {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
+    /** Whether this monitor appears on the workspace's public status page. */
+    @Column(nullable = false)
+    private boolean published = false;
+
     @OneToMany(mappedBy = "monitor")
     private List<ProbeResult> probeResults = new ArrayList<>();
     protected Monitor() {
@@ -110,6 +114,14 @@ public class Monitor {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public boolean isPublished() {
+        return published;
+    }
+
+    public void setPublished(boolean published) {
+        this.published = published;
     }
 
     public void setWorkspace(Workspace workspace) {

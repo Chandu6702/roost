@@ -432,7 +432,7 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 
 ## WEEK 18 — Public status pages + observability
 
-### ☐ Day 1 — Public status page per tenant (subdomain routing)
+### ✅ Day 1 — Public status page per tenant (subdomain routing)
 
 **Code:** in `SecurityConfig` permit `/public/status/**`. Write a `TenantResolutionFilter` that inspects `Host` header — if `<slug>.roost.local:8080`, resolve to workspace by slug, set `TenantContext`. `PublicStatusController` at `/public/status`: current status of every published monitor + last 5 incidents. Test locally: add `127.0.0.1 acme.roost.local demo.roost.local` to `hosts` file, curl `http://acme.roost.local:8080/public/status`.
 **Self-check:** 1) Why subdomain instead of `/status/{slug}`? 2) Cookie/CSRF implications of subdomains? 3) How would this scale — 10k tenants, DNS strategy? 4) Public endpoints and multi-tenant filter — how do they coexist? 5) What's the risk if you forget to disable tenant filter for a public endpoint? Or if you forget to check `published = true`?

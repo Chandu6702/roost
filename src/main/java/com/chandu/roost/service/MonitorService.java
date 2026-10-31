@@ -134,6 +134,14 @@ public class MonitorService {
         monitorRepository.delete(monitor);
     }
 
+    /** Opt a monitor onto (or off) the workspace's public status page. */
+    @Transactional
+    public Monitor setPublished(Long id, boolean published, String email) {
+        Monitor monitor = getMonitor(id, email);
+        monitor.setPublished(published);
+        return monitorRepository.save(monitor);
+    }
+
 
     @Transactional(readOnly = true)
     public List<MonitorCacheDto> getMonitorsByWorkspace(
