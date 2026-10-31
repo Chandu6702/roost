@@ -452,19 +452,19 @@ Enable per-session: in a `HibernateInterceptor` fetch the tenant from `TenantCon
 **Self-check:** 1) Why JSON logs in prod? 2) MDC — what is it, when is it cleared? 3) Correlation ID across async — pitfall? 4) Sensitive data in logs — how do you strip? 5) Log levels — what should DEBUG/INFO/WARN/ERROR each contain?
 **Answers:** 1) Aggregators (ELK, Loki, Datadog) parse fields for search/aggregation. Plain text = grep only. 2) Mapped Diagnostic Context — per-thread map that logging appenders read. Cleared at request end (in the filter's `finally`). 3) `@Async` = new thread = empty MDC. Fix with a `TaskDecorator` that copies MDC to the async thread. 4) Never log raw request bodies. Use a filter that redacts specific fields (e.g., `password`). 5) DEBUG = fine-grained flow. INFO = business events. WARN = recoverable oddities. ERROR = failures needing attention.
 
-### ☐ Day 4 — GitHub Actions CI
+### ✅ Day 4 — GitHub Actions CI
 
 **Code:** `.github/workflows/ci.yml` — triggers on push + PR, JDK 25 setup (matches pom `java.version`), cache Maven repo, `./mvnw -B verify`, status badge in README. Break a test intentionally on a branch, confirm check goes red.
 **Self-check:** 1) Why `-B` (`--batch-mode`)? 2) Testcontainers in CI — is Docker available? 3) Fail-fast for the build — pros/cons? 4) Should you run integration tests on every PR or nightly? 5) Secrets in GitHub Actions — how?
 **Answers:** 1) Non-interactive; suppresses download progress spam in logs. 2) On GitHub-hosted runners: yes, Docker is preinstalled. On self-hosted: verify. 3) Fail-fast stops the pipeline on first failure — saves CI minutes, but you lose visibility into whether other stages would have failed too. Trade-off. 4) Small: every PR. Large (slow integration suites): every PR for critical paths, full nightly. 5) `secrets.NAME` — encrypted, injected as env vars or step inputs.
 
-### ☐ Day 5 — `docker-compose.yml` for full local stack + handoff to `system-design/`
+### ✅ Day 5 — `docker-compose.yml` for full local stack + handoff to `system-design/`
 
 **Code:** production-shaped `docker-compose.yml` at repo root — services: `db` (postgres:17), `redis`, `kafka` (bitnami/kafka), `app` (multi-stage Dockerfile). App image built from `./Dockerfile`. `docker compose up` and everything comes up. **This is the handoff to system-design/ Week 20**, which takes this and deploys to AWS.
 **Self-check:** 1) Multi-stage Dockerfile — why? 2) `.dockerignore` — what belongs? 3) `wait-for-it.sh` vs `depends_on` — difference? 4) One-container-per-process — why? 5) Prod Dockerfile vs dev Dockerfile — differ how?
 **Answers:** 1) Build stage has JDK + Maven (~500MB); runtime stage has only JRE + jar (~200MB). Smaller image = faster deploy. 2) `target/`, `.git/`, `.idea/`, `*.md` — don't waste build context. 3) `depends_on` = start order, not "ready" order. Use healthchecks or app-level retries for actual readiness. 4) Simpler restart/scale; one crash doesn't take down everything; observability per container. 5) Prod: no DevTools, no hot reload, hardened base image, non-root user. Dev: reload on change.
 
-### ☐ Monday W18 — deep-work + review
+### ✅ Monday W18 — deep-work + review
 
 **Morning:** end-to-end demo — spin down everything, `docker compose up`, verify probes run, incidents open, notifications fire, `/actuator/prometheus` scrapes clean, public status page renders per tenant.
 **Evening:** `interview-qa/week-18-observability.md`.

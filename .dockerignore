@@ -1,0 +1,10 @@
+target/
+.git/
+.github/
+.idea/
+*.iml
+notes/
+interview-qa/
+reviews/
+*.md
+HELP.md

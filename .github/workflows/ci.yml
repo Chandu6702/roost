@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # JDK 25 to match pom <java.version>. Temurin + built-in Maven cache.
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      # -B = batch mode: non-interactive, no download-progress spam in logs.
+      # verify runs unit + Testcontainers/embedded-Kafka integration tests;
+      # Docker is preinstalled on GitHub-hosted runners.
+      - name: Build and test
+        run: ./mvnw -B verify
