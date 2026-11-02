@@ -86,13 +86,15 @@ public class WorkspaceService {
 
     @Transactional(readOnly = true)
     public List<Workspace> getWorkspacesForUser(String email) {
-        Long workspaceId =
-                currentWorkspaceService.getCurrentWorkspaceId(email);
-
-        Workspace workspace = workspaceRepository.findById(workspaceId)
+        // A list endpoint: a user with no workspace yet returns [] (so the UI
+        // can offer the create-workspace flow), not a 403. Don't route through
+        // getCurrentWorkspaceId here — that throws when there's no workspace,
+        // which is the right behaviour for tenant resolution but wrong for /mine.
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND, "Workspace not found"));
+                        HttpStatus.UNAUTHORIZED, "User not found"));
 
-        return List.of(workspace);
+        Workspace workspace = user.getWorkspace();
+        return workspace == null ? List.of() : List.of(workspace);
     }
 }
