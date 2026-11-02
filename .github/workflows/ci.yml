@@ -53,4 +53,9 @@ jobs:
       # verify runs unit + Testcontainers/embedded-Kafka integration tests;
       # Docker is preinstalled on GitHub-hosted runners.
       - name: Build and test
+        env:
+          # The app reads ${jwt.secret}; real deployments inject it (docker-compose
+          # sets JWT_SECRET, locally it comes from the git-ignored application-local.yml).
+          # Tests only need a present, >=32-byte HS256 key — a throwaway is fine.
+          JWT_SECRET: ci-test-only-hs256-signing-secret-0123456789-abcdef
         run: ./mvnw -B verify
