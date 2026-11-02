@@ -8,6 +8,36 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    # Backing services the integration tests need. Ports mirror
+    # docker-compose.yml (and application.yml): Postgres on 5433, Redis on
+    # 6380. Testcontainers supplies Postgres for the tests that use it; the
+    # plain @SpringBootTest contexts and the Redis tests connect to these.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: roost
+          POSTGRES_PASSWORD: roost
+          POSTGRES_DB: roost
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U roost"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+      redis:
+        image: redis:7
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v4
 
