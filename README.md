@@ -20,6 +20,7 @@ Java 25 · Spring Boot 4.1 · Spring Security (JWT resource server) · Spring Da
 - **Multi-tenancy** — strict row-level isolation (Hibernate `@Filter` + explicit workspace scoping); workspace A can never read B's data.
 - **Public status page** — `GET /public/status` resolved per tenant from the `Host` subdomain, showing only *published* monitors.
 - **Operability** — Prometheus metrics, JSON logs with correlation IDs, optimistic locking, JPA auditing, RFC 7807 error responses.
+- **Abuse protection** — per-IP rate limiting on `POST /auth/login` (Redis fixed-window, 429 + `Retry-After`).
 
 ## Architecture
 
@@ -103,7 +104,7 @@ roost/
 ├── Dockerfile           ← multi-stage, non-root runtime
 └── src/main/java/com/chandu/roost/
     ├── controller/ service/ repository/ entity/ dto/ error/
-    ├── config/ security/ probe/ messaging/ publicstatus/ webhook/ aop/
+    ├── config/ security/ probe/ messaging/ publicstatus/ webhook/ ratelimit/ aop/
 ```
 
 ## Roadmap
