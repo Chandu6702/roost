@@ -4,13 +4,17 @@ package com.chandu.roost.controller;
 import com.chandu.roost.entity.Monitor;
 import com.chandu.roost.entity.MonitorType;
 import com.chandu.roost.entity.Workspace;
+import com.chandu.roost.config.RequestIdFilter;
 import com.chandu.roost.error.MonitorNotFoundException;
-import com.chandu.roost.repository.WorkspaceRepository;
+import com.chandu.roost.publicstatus.TenantResolutionFilter;
+import com.chandu.roost.ratelimit.RateLimitFilter;
 import com.chandu.roost.service.MonitorService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
@@ -30,7 +34,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(MonitorController.class)
+// Exclude the app's custom servlet filters from this controller slice: they are
+// @Component filters with their own collaborators (repositories, Redis) that a
+// web slice doesn't load, and they're irrelevant to controller behaviour here.
+@WebMvcTest(controllers = MonitorController.class, excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = {TenantResolutionFilter.class, RateLimitFilter.class, RequestIdFilter.class}))
 @AutoConfigureMockMvc(addFilters = false)
 class MonitorControllerTest {
 
@@ -44,11 +53,6 @@ class MonitorControllerTest {
 
     @MockitoBean
     private CacheManager cacheManager;
-
-    // TenantResolutionFilter is a @Component filter picked up by the web slice;
-    // mock its only collaborator so the slice context builds.
-    @MockitoBean
-    private WorkspaceRepository workspaceRepository;
 
     @Test
     void getMonitor_whenMonitorExists_returns200() throws Exception {

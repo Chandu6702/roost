@@ -79,3 +79,7 @@ roost:
     enabled: true
     timeout-ms: 5000
     max-attempts: 5
+
+  ratelimit:
+    login-limit: 5
+    login-window-seconds: 60

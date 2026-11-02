@@ -2,6 +2,7 @@
 package com.chandu.roost;
 
 import com.chandu.roost.config.ProbeProperties;
+import com.chandu.roost.config.RateLimitProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -11,7 +12,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 
 @SpringBootApplication
-@EnableConfigurationProperties(ProbeProperties.class)
+@EnableConfigurationProperties({ProbeProperties.class, RateLimitProperties.class})
 @EnableCaching
 @EnableScheduling
 @EnableAsync
