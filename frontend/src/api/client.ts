@@ -19,9 +19,11 @@ export function setToken(token: string | null) {
   }
 }
 
-// baseURL '' → requests are same-origin and the Vite dev proxy forwards them
-// to the Spring Boot API. In production the SPA is served next to the API.
-export const api = axios.create({ baseURL: '' })
+// All API calls go under /api so they never collide with client-side routes
+// (e.g. the /incidents page vs. the /incidents endpoint). The Vite dev proxy
+// strips /api and forwards to the Spring Boot API; in production the same-origin
+// reverse proxy (ALB/nginx) routes /api to the backend.
+export const api = axios.create({ baseURL: '/api' })
 
 // Attach the JWT to every request.
 api.interceptors.request.use((config) => {
