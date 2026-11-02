@@ -2,6 +2,7 @@
 package com.chandu.roost.service;
 
 import com.chandu.roost.aop.LogExecutionTime;
+import com.chandu.roost.dto.IncidentResponse;
 import com.chandu.roost.entity.Incident;
 import com.chandu.roost.entity.IncidentStatus;
 import com.chandu.roost.entity.Monitor;
@@ -11,6 +12,7 @@ import com.chandu.roost.error.MonitorNotFoundException;
 import com.chandu.roost.repository.IncidentRepository;
 import com.chandu.roost.repository.MonitorRepository;
 import com.chandu.roost.repository.OutboxEventRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,17 +28,52 @@ public class IncidentService {
     private final AuditService auditService;
     private final MonitorRepository monitorRepository;
     private final OutboxEventRepository outboxEventRepository;
+    private final MonitorService monitorService;
 
     public IncidentService(
             IncidentRepository incidentRepository,
             AuditService auditService,
             MonitorRepository monitorRepository,
-            OutboxEventRepository outboxEventRepository
+            OutboxEventRepository outboxEventRepository,
+            MonitorService monitorService
     ) {
         this.incidentRepository = incidentRepository;
         this.auditService = auditService;
         this.monitorRepository = monitorRepository;
         this.outboxEventRepository = outboxEventRepository;
+        this.monitorService = monitorService;
+    }
+
+    /**
+     * Incidents across the caller's workspace, newest first. Tenant isolation
+     * is inherited from {@link MonitorService#getMonitors(String)} — we only
+     * ever query incidents for monitor IDs that scoped lookup returned, so a
+     * caller can never see another workspace's incidents.
+     */
+    @Transactional(readOnly = true)
+    public List<IncidentResponse> listForUser(String email, Pageable pageable) {
+        List<Long> monitorIds = monitorService.getMonitors(email).stream()
+                .map(Monitor::getId)
+                .toList();
+
+        if (monitorIds.isEmpty()) {
+            return List.of();
+        }
+
+        return incidentRepository
+                .findByMonitorIdInOrderByOpenedAtDesc(monitorIds, pageable)
+                .stream()
+                .map(i -> new IncidentResponse(
+                        i.getId(),
+                        i.getMonitor().getId(),
+                        i.getMonitor().getName(),
+                        i.getStatus(),
+                        i.getOpenedAt(),
+                        i.getAcknowledgedAt(),
+                        i.getResolvedAt(),
+                        i.getSummary()
+                ))
+                .toList();
     }
 
     @LogExecutionTime
