@@ -60,6 +60,16 @@ docker compose up --build
 
 Swagger UI: `http://localhost:8080/swagger-ui.html` · Metrics: `http://localhost:8080/actuator/prometheus`
 
+## Web UI
+
+A React + Vite + TypeScript SPA lives in [`frontend/`](frontend/) — login/register, a monitors dashboard (create/publish/delete), an incident feed, and a preview of the public status page. It's a pure client (holds the JWT, calls the stateless API; no second server tier). Run the backend, then:
+
+```bash
+cd frontend && npm install && npm run dev
+```
+
+See [frontend/README.md](frontend/README.md).
+
 ## API tour
 
 ```bash
@@ -102,6 +112,7 @@ roost/
 ├── interview-qa/        ← weekly + phase-consolidated interview Q&A
 ├── docker-compose.yml   ← postgres · redis · kafka · app
 ├── Dockerfile           ← multi-stage, non-root runtime
+├── frontend/            ← React + Vite SPA client
 └── src/main/java/com/chandu/roost/
     ├── controller/ service/ repository/ entity/ dto/ error/
     ├── config/ security/ probe/ messaging/ publicstatus/ webhook/ ratelimit/ aop/
