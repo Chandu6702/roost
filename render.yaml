@@ -71,7 +71,7 @@ services:
       # (the backend serves /auth, /monitors, … at the root).
       - type: rewrite
         source: /api/*
-        destination: https://roost-api.onrender.com/*
+        destination: https://roost-api-prll.onrender.com/*
       # SPA fallback: every other path serves index.html so client routing works.
       - type: rewrite
         source: /*
