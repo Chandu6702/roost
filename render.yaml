@@ -15,11 +15,9 @@
 # exactly https://roost-api.onrender.com, fix the `destination` on the rewrite
 # rule (roost-web → Redirects/Rewrites) to match. See RENDER-DEPLOY.md.
 
-databases:
-  - name: roost-db
-    databaseName: roost
-    user: roost
-    plan: free            # NOTE: free Postgres is removed ~30 days after creation
+# Postgres lives on Supabase (free, no 30-day expiry), reached over the IPv4
+# session pooler. Host/port/db/user are fixed below; DB_PASSWORD is set in the
+# Render dashboard (sync: false) so the secret stays out of the repo.
 
 services:
   # ── Redis / Key Value ───────────────────────────────────────────────────
@@ -41,17 +39,17 @@ services:
         value: prod
       - key: JWT_SECRET
         generateValue: true          # Render generates a long random secret once
-      # Postgres connection, wired from the managed DB above.
+      # Postgres connection — Supabase session pooler (IPv4), us-east-1.
       - key: DB_HOST
-        fromDatabase: { name: roost-db, property: host }
+        value: aws-0-us-east-1.pooler.supabase.com
       - key: DB_PORT
-        fromDatabase: { name: roost-db, property: port }
+        value: "5432"
       - key: DB_NAME
-        fromDatabase: { name: roost-db, property: database }
+        value: postgres
       - key: DB_USER
-        fromDatabase: { name: roost-db, property: user }
+        value: postgres.jbvxbzbmruzcsdnzkusc
       - key: DB_PASSWORD
-        fromDatabase: { name: roost-db, property: password }
+        sync: false                    # set in the Render dashboard (roost-api → Environment)
       # Redis connection string (redis://…); application.yml reads
       # SPRING_DATA_REDIS_URL in preference to host/port.
       - key: SPRING_DATA_REDIS_URL
