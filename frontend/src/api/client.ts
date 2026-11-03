@@ -35,10 +35,26 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// On 401 the token is gone/expired — drop it and bounce to login.
+// Cold-start resilience: a free-tier backend spins down when idle, and the
+// first request(s) after it wakes can be dropped (connection closed / timeout)
+// with no HTTP response at all. Retry those a few times with a short backoff so
+// a wake-up reads as a brief load instead of an error. Anything that gets a real
+// HTTP response (including 4xx/5xx) falls through to the handling below and is
+// never retried here.
+const MAX_COLD_RETRIES = 3
+
 api.interceptors.response.use(
   (res) => res,
-  (error) => {
+  async (error) => {
+    const config = error?.config as (typeof error.config & { __coldRetry?: number }) | undefined
+    if (config && !error?.response) {
+      config.__coldRetry = (config.__coldRetry ?? 0) + 1
+      if (config.__coldRetry <= MAX_COLD_RETRIES) {
+        await new Promise((resolve) => setTimeout(resolve, config.__coldRetry * 1500))
+        return api.request(config)
+      }
+    }
+    // On 401 the token is gone/expired — drop it and bounce to login.
     if (error?.response?.status === 401 && getToken()) {
       setToken(null)
       if (!location.pathname.startsWith('/login')) {
