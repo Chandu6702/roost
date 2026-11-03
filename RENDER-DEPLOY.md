@@ -30,7 +30,7 @@ Kafka is **off** — the app runs on Postgres + Redis only. No broker to deploy.
 2. First build takes a few minutes (Docker image for the API, `npm` build for
    the SPA). Watch the `roost-api` logs — on first boot Flyway runs the
    migrations against the fresh database, then the app reports healthy at
-   `/health`.
+   `/actuator/health`.
 
 ## The one thing to check after the first deploy  ⚠️
 
