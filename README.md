@@ -26,16 +26,16 @@ Java 25 · Spring Boot 4.1 · Spring Security (JWT resource server) · Spring Da
 
 ```mermaid
 flowchart LR
-    SCH[Scheduler<br/>claims due monitors] --> PT[ProbeTask<br/>@Async virtual thread]
-    PT -->|HTTP| TARGET[(Monitored URL)]
-    PT -->|save| PR[(probe_results)]
-    PT -->|DOWN/UP| INC[IncidentService]
-    INC -->|one commit| DB[(Postgres:<br/>incident + audit + outbox)]
-    OBX[OutboxPublisher<br/>@Scheduled] -->|poll unpublished| DB
-    OBX -->|publish| K[[Kafka roost.incidents]]
-    K --> NC[NotificationConsumer]
-    NC --> WH[WebhookService<br/>HMAC + retry]
-    WH -->|POST signed| SUBS[(Tenant subscribers)]
+    SCH["Scheduler<br/>claims due monitors"] --> PT["ProbeTask<br/>@Async virtual thread"]
+    PT -->|HTTP| TARGET[("Monitored URL")]
+    PT -->|save| PR[("probe_results")]
+    PT -->|"DOWN/UP"| INC["IncidentService"]
+    INC -->|"one commit"| DB[("Postgres:<br/>incident + audit + outbox")]
+    OBX["OutboxPublisher<br/>@Scheduled"] -->|"poll unpublished"| DB
+    OBX -->|publish| K[["Kafka roost.incidents"]]
+    K --> NC["NotificationConsumer"]
+    NC --> WH["WebhookService<br/>HMAC + retry"]
+    WH -->|"POST signed"| SUBS[("Tenant subscribers")]
 ```
 
 Detection is transactional; everything after the outbox is asynchronous and retryable. See [docs/DESIGN.md](docs/DESIGN.md) for the interesting problems and how they're solved.
