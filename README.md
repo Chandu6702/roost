@@ -4,7 +4,7 @@
 
 **Quiet watch over your services.** A multi-tenant uptime & status-monitoring platform: teams register HTTP monitors, Roost probes them on schedule, opens and auto-resolves incidents, fans out signed webhook notifications, and publishes a per-tenant public status page.
 
-Built as the flagship of a 9-month Java/Spring Boot career-transition roadmap — every feature maps to a learning day in [DAILY-PLAN.md](DAILY-PLAN.md), but the result is a real, production-shaped application, not a tutorial toy.
+A production-shaped system, not a CRUD demo: strict row-level multi-tenancy, a transactional outbox for reliable incident events, HMAC-signed webhooks with exponential-backoff retry, probing on virtual threads, and first-class observability.
 
 ## Stack
 
@@ -106,10 +106,7 @@ curl -s http://acme.roost.local:8080/public/status
 
 ```
 roost/
-├── DAILY-PLAN.md        ← the learning plan (Weeks 10–19, day-by-day)
 ├── docs/DESIGN.md       ← design decisions & trade-offs
-├── notes/               ← 6-section knowledge-base notes per topic
-├── interview-qa/        ← weekly + phase-consolidated interview Q&A
 ├── docker-compose.yml   ← postgres · redis · kafka · app
 ├── Dockerfile           ← multi-stage, non-root runtime
 ├── frontend/            ← React + Vite SPA client
@@ -117,10 +114,6 @@ roost/
     ├── controller/ service/ repository/ entity/ dto/ error/
     ├── config/ security/ probe/ messaging/ publicstatus/ webhook/ ratelimit/ aop/
 ```
-
-## Roadmap
-
-Deployment (Docker → EC2 → RDS → ALB → ECS, Prometheus/Grafana) is picked up by the sibling `system-design/` repo (Month 5). AI incident postmortems + semantic monitor grouping come in `AI/` (Month 7).
 
 ## License
 

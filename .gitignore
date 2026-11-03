@@ -38,3 +38,6 @@ application-local.properties
 .env
 .env.local
 *.log
+
+# Local Claude Code tooling
+.claude/
