@@ -1,0 +1,78 @@
+# Render Blueprint for roost.
+# Creates four resources: a managed Postgres, a Key Value (Redis) store, the
+# Spring Boot API (built from the Dockerfile), and the React SPA as a static
+# site that reverse-proxies /api/* to the API (same-origin, so the auth cookie
+# works and no CORS is needed — the app has none by design).
+#
+# Kafka stays OFF here (roost.kafka.enabled defaults to false): the outbox relay
+# fans out webhooks in-process via DirectOutboxDispatcher. No broker to run.
+#
+# ── Before you apply ──────────────────────────────────────────────────────
+# Render derives each service's URL from its name. If "roost-api" is already
+# taken in your account, Render appends a suffix (e.g. roost-api-ab12), and the
+# static site's /api rewrite below will point at the wrong host. After the first
+# deploy, open roost-api, copy its real .onrender.com URL, and if it is NOT
+# exactly https://roost-api.onrender.com, fix the `destination` on the rewrite
+# rule (roost-web → Redirects/Rewrites) to match. See RENDER-DEPLOY.md.
+
+databases:
+  - name: roost-db
+    databaseName: roost
+    user: roost
+    plan: free            # NOTE: free Postgres is removed ~30 days after creation
+
+services:
+  # ── Redis / Key Value ───────────────────────────────────────────────────
+  - type: keyvalue
+    name: roost-redis
+    plan: free
+    ipAllowList: []        # internal-only; reachable from roost-api, not the public net
+
+  # ── Spring Boot API (Docker) ────────────────────────────────────────────
+  - type: web
+    name: roost-api
+    runtime: docker
+    plan: free             # NOTE: free web services sleep when idle (cold start ~1 min)
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JWT_SECRET
+        generateValue: true          # Render generates a long random secret once
+      # Postgres connection, wired from the managed DB above.
+      - key: DB_HOST
+        fromDatabase: { name: roost-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: roost-db, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: roost-db, property: database }
+      - key: DB_USER
+        fromDatabase: { name: roost-db, property: user }
+      - key: DB_PASSWORD
+        fromDatabase: { name: roost-db, property: password }
+      # Redis connection string (redis://…); application.yml reads
+      # SPRING_DATA_REDIS_URL in preference to host/port.
+      - key: SPRING_DATA_REDIS_URL
+        fromService: { name: roost-redis, type: keyvalue, property: connectionString }
+
+  # ── React SPA (static) + reverse proxy ──────────────────────────────────
+  - type: web
+    name: roost-web
+    runtime: static
+    buildCommand: cd frontend && npm ci && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+    routes:
+      # Proxy API calls to the backend, stripping the /api prefix the SPA adds
+      # (the backend serves /auth, /monitors, … at the root).
+      - type: rewrite
+        source: /api/*
+        destination: https://roost-api.onrender.com/*
+      # SPA fallback: every other path serves index.html so client routing works.
+      - type: rewrite
+        source: /*
+        destination: /index.html

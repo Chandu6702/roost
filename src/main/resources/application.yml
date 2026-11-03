@@ -7,9 +7,12 @@ spring:
       fail-on-unknown-properties: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5433/roost
-    username: roost
-    password: roost
+    # Assembled from env with local-dev defaults, so a managed Postgres (Render,
+    # etc.) wires in by setting DB_HOST/DB_PORT/DB_NAME/DB_USER/DB_PASSWORD.
+    # docker-compose still overrides the whole URL via SPRING_DATASOURCE_URL.
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5433}/${DB_NAME:roost}
+    username: ${DB_USER:roost}
+    password: ${DB_PASSWORD:roost}
 
   flyway:
     enabled: true
@@ -21,8 +24,10 @@ spring:
 
   data:
     redis:
-      host: localhost
-      port: 6380
+      # Env-driven with local defaults; a managed Redis/Key Value can instead be
+      # wired with SPRING_DATA_REDIS_URL (redis://…), which takes precedence.
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6380}
 
   kafka:
     bootstrap-servers: localhost:9092
