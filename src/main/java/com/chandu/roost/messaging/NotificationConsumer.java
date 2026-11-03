@@ -5,6 +5,7 @@ import tools.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -15,8 +16,14 @@ import org.springframework.stereotype.Component;
  *
  * <p>{@link WebhookService} is optional ({@code roost.webhook.enabled}); we take
  * it via {@link ObjectProvider} so the consumer still works with webhooks off.
+ *
+ * <p>Active only when {@code roost.kafka.enabled=true}. With Kafka off (the
+ * default) there is no broker and no producer, so this consumer does not load;
+ * {@link com.chandu.roost.service.DirectOutboxDispatcher} fans out in-process
+ * instead.
  */
 @Component
+@ConditionalOnProperty(name = "roost.kafka.enabled", havingValue = "true")
 public class NotificationConsumer {
 
     private static final Logger log =

@@ -65,5 +65,8 @@ services:
       SPRING_DATASOURCE_PASSWORD: roost
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
+      # This full-stack run includes a broker, so exercise the real
+      # outbox -> Kafka -> consumer pipeline. (Default is off; see application.yml.)
+      ROOST_KAFKA_ENABLED: "true"
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       JWT_SECRET: change-me-to-a-long-random-value-in-real-deployments-0123456789

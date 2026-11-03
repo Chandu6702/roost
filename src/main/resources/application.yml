@@ -64,9 +64,19 @@ management:
       enabled: true
 
 server:
-  port: 8080
+  # Honour the platform-injected PORT (Render, Heroku, Cloud Run, …) and fall
+  # back to 8080 for local dev and docker-compose.
+  port: ${PORT:8080}
 
 roost:
+  # Kafka is optional. OFF by default so the app runs on just Postgres + Redis:
+  # the outbox relay (OutboxPublisher) then fans out webhooks in-process via
+  # DirectOutboxDispatcher. Set true (and point spring.kafka.bootstrap-servers
+  # at a broker) to use the full outbox -> Kafka -> consumer pipeline; the
+  # docker-compose full-stack run does exactly that.
+  kafka:
+    enabled: false
+
   events:
     topic: roost.incidents
     partitions: 3

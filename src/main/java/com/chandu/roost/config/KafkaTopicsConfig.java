@@ -2,6 +2,7 @@ package com.chandu.roost.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.TopicBuilder;
@@ -10,8 +11,12 @@ import org.springframework.kafka.config.TopicBuilder;
  * Declares the incident-events topic so it is auto-created on a dev broker.
  * In production the topic is usually pre-provisioned with a fixed partition
  * count; partitions are what give us ordering-per-key and parallelism.
+ *
+ * <p>Only registered when {@code roost.kafka.enabled=true}; with Kafka off there
+ * is no broker to create the topic on.
  */
 @Configuration
+@ConditionalOnProperty(name = "roost.kafka.enabled", havingValue = "true")
 public class KafkaTopicsConfig {
 
     @Bean
