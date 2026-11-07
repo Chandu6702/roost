@@ -1,7 +1,7 @@
 package com.chandu.roost.publicstatus;
 
-import com.chandu.roost.entity.Workspace;
-import com.chandu.roost.repository.WorkspaceRepository;
+import com.chandu.roost.workspace.Workspace;
+import com.chandu.roost.workspace.WorkspaceRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

@@ -1,8 +1,7 @@
 
 package com.chandu.roost.probe;
 
-import com.chandu.roost.aop.LogExecutionTime;
-import com.chandu.roost.config.ProbeProperties;
+import com.chandu.roost.shared.observability.LogExecutionTime;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

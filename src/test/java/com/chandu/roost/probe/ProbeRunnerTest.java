@@ -1,7 +1,6 @@
 
 package com.chandu.roost.probe;
 
-import com.chandu.roost.config.ProbeProperties;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

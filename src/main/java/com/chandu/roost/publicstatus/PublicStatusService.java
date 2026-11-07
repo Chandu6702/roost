@@ -1,11 +1,10 @@
 package com.chandu.roost.publicstatus;
 
-import com.chandu.roost.entity.Incident;
-import com.chandu.roost.entity.Monitor;
-import com.chandu.roost.entity.ProbeResult;
-import com.chandu.roost.repository.IncidentRepository;
-import com.chandu.roost.repository.MonitorRepository;
-import com.chandu.roost.repository.ProbeResultRepository;
+import com.chandu.roost.incident.Incident;
+import com.chandu.roost.monitor.Monitor;
+import com.chandu.roost.incident.IncidentRepository;
+import com.chandu.roost.monitor.MonitorRepository;
+import com.chandu.roost.probe.ProbeResultRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

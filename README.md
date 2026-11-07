@@ -110,10 +110,24 @@ roost/
 ├── docker-compose.yml   ← postgres · redis · kafka · app
 ├── Dockerfile           ← multi-stage, non-root runtime
 ├── frontend/            ← React + Vite SPA client
-└── src/main/java/com/chandu/roost/
-    ├── controller/ service/ repository/ entity/ dto/ error/
-    ├── config/ security/ probe/ messaging/ publicstatus/ webhook/ ratelimit/ aop/
+└── src/main/java/com/chandu/roost/   ← modular monolith: package-by-feature
+    ├── monitor/        ← Monitor entity, controller, service, repo, DTOs, spec (one module)
+    ├── incident/       ← incident state machine + API
+    ├── probe/          ← scheduler, probe task, HTTP client, results
+    ├── workspace/      ← tenant workspaces
+    ├── identity/       ← users, auth, JWT
+    ├── notification/   ← webhooks + Kafka consumer
+    ├── outbox/         ← transactional outbox + dispatchers
+    ├── audit/          ← append-only audit trail
+    ├── publicstatus/   ← per-tenant public status page
+    ├── ratelimit/      ← Redis fixed-window limiter
+    └── shared/         ← cross-cutting kernel: config · security · error · observability
 ```
+
+Each feature module owns its full vertical slice (entity → repository → service →
+controller → DTOs) instead of being scattered across technical-layer folders. Only
+genuinely cross-cutting code (security, global config, error handling, logging aspect)
+lives in `shared/`.
 
 ## License
 

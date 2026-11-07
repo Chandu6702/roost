@@ -1,8 +1,8 @@
 
 package com.chandu.roost;
 
-import com.chandu.roost.config.ProbeProperties;
-import com.chandu.roost.config.RateLimitProperties;
+import com.chandu.roost.probe.ProbeProperties;
+import com.chandu.roost.ratelimit.RateLimitProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

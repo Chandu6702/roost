@@ -1,6 +1,5 @@
 package com.chandu.roost.ratelimit;
 
-import com.chandu.roost.config.RateLimitProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
